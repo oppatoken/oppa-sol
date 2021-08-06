@@ -4,11 +4,6 @@ pragma solidity ^0.6.12;
 /**
   #Oppa
    
-   If u are 90's u must will know this!
-   Yes this is oppa the little hamster who entertains us with his he ventures out each day to make friends 
-   and adventure with the clan of fellow hamster friends known as The Ham-Hams.
-   Now i bring you this #Oppa to launch on Binance Smart Chain with Tiny Initial Market Cap!
-   
    I will add 0.2 bnb as an initial liquidity, and burn 50% from the start to create the blackhole,
    and after that i will burn the LP and renounce Ownership
 
@@ -18,7 +13,6 @@ pragma solidity ^0.6.12;
    50% burn to the black hole, with such big black hole and 5% fee, the strong holder will get a valuable reward
    also there is antiwhale system, limiting the max transaction to 0.5% of the total number of tokens every buy and sell
  */
-
 import "./utils/Context.sol";
 import "./utils/Ownable.sol";
 
@@ -45,7 +39,7 @@ contract Oppa is Context, IERC20, Ownable {
 
     uint256 private constant MAX = ~uint256(0);
 
-    uint256 maxTxPercent = 100 / 5;
+    uint256 private maxTxPercent = 100 / 5;
     uint256 private _tTotal = 1000000000000000 * 10**18;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
@@ -94,7 +88,6 @@ contract Oppa is Context, IERC20, Ownable {
 
         // set the rest of the contract variables
         uniswapV2Router = _uniswapV2Router;
-
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
