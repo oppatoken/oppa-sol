@@ -1,0 +1,23 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.1",
+    "hardhat": "^2.4.3"
+  },
+  "scripts": {
+    "compile": "npx hardhat clean && npx hardhat compile",
+    "clean": "npx hardhat clean",
+    "chain": "npx hardhat node",
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost",
+    "mint": "npx hardhat run scripts/mint.js --network testnet",
+    "deploy-testnet": "npx hardhat run scripts/deploy.js --network testnet"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^2.1.4"
+  }
+}
