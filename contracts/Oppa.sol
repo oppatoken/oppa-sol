@@ -44,6 +44,8 @@ contract Oppa is Context, IERC20, Ownable {
     address[] private _excluded;
 
     uint256 private constant MAX = ~uint256(0);
+
+    uint256 maxTxPercent = 100 / 5;
     uint256 private _tTotal = 1000000000000000 * 10**18;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
@@ -64,7 +66,6 @@ contract Oppa is Context, IERC20, Ownable {
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
 
-    uint256 public _maxTxAmount = 5000000 * 10**6 * 10**9;
     uint256 private numTokensSellToAddToLiquidity = 500000 * 10**6 * 10**9;
 
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
@@ -120,6 +121,10 @@ contract Oppa is Context, IERC20, Ownable {
     function balanceOf(address account) public view override returns (uint256) {
         if (_isExcluded[account]) return _tOwned[account];
         return tokenFromReflection(_rOwned[account]);
+    }
+
+    function maxTxAmount() private view returns (uint256) {
+        return totalSupply().mul(maxTxPercent);
     }
 
     function transfer(address recipient, uint256 amount)
@@ -296,8 +301,9 @@ contract Oppa is Context, IERC20, Ownable {
         _liquidityFee = liquidityFee;
     }
 
-    function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner {
-        _maxTxAmount = _tTotal.mul(maxTxPercent).div(10**2);
+    function setMaxTxPercent(uint256 newMaxTxPercent) external onlyOwner {
+        uint256 HUNDER_PERCENT = 100;
+        maxTxPercent = HUNDER_PERCENT.div(newMaxTxPercent);
     }
 
     function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
@@ -558,7 +564,7 @@ contract Oppa is Context, IERC20, Ownable {
         require(amount > 0, "Transfer amount must be greater than zero");
         if (from != owner() && to != owner())
             require(
-                amount <= _maxTxAmount,
+                amount <= maxTxAmount(),
                 "Transfer amount exceeds the maxTxAmount."
             );
 
@@ -568,8 +574,8 @@ contract Oppa is Context, IERC20, Ownable {
         // also, don't swap & liquify if sender is uniswap pair.
         uint256 contractTokenBalance = balanceOf(address(this));
 
-        if (contractTokenBalance >= _maxTxAmount) {
-            contractTokenBalance = _maxTxAmount;
+        if (contractTokenBalance >= maxTxAmount()) {
+            contractTokenBalance = maxTxAmount();
         }
 
         bool overMinTokenBalance = contractTokenBalance >=
