@@ -9,7 +9,7 @@ pragma solidity ^0.6.12;
 
    Great features:
    5% fee auto add to the liquidity pool to locked forever when selling
-   2% fee auto distribute to all holders. I set 7% tax fee for STRONG HOLDERS.
+   9% fee auto distribute to all holders
    50% burn to the black hole, with such big black hole and 5% fee, the strong holder will get a valuable reward
    also there is antiwhale system, limiting the max transaction to 0.5% of the total number of tokens every buy and sell
  */
@@ -48,7 +48,7 @@ contract Oppa is Context, IERC20, Ownable {
     string private _symbol = "OPPA";
     uint8 private _decimals = 18;
 
-    uint256 public _taxFee = 2;
+    uint256 public _taxFee = 9;
     uint256 private _previousTaxFee = _taxFee;
 
     uint256 public _liquidityFee = 5;
