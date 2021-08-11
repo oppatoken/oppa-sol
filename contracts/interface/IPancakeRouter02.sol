@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-import "./IUniswapV2Router01.sol";
+import "./IPancakeRouter01.sol";
 
-interface IUniswapV2Router02 is IUniswapV2Router01 {
+interface IPancakeRouter02 is IPancakeRouter01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         address token,
         uint256 liquidity,

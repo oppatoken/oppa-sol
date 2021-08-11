@@ -9,22 +9,21 @@ pragma solidity ^0.6.12;
 
    Great features:
    5% fee auto add to the liquidity pool to locked forever when selling
-   9% fee auto distribute to all holders
+   2% fee auto distribute to all holders
    50% burn to the black hole, with such big black hole and 5% fee, the strong holder will get a valuable reward
    also there is antiwhale system, limiting the max transaction to 0.5% of the total number of tokens every buy and sell
  */
 import "./utils/Context.sol";
 import "./utils/Ownable.sol";
 
-import "./interface/IERC20.sol";
-import "./interface/IUniswapV2Router02.sol";
-import "./interface/IUniswapV2Factory.sol";
+import "./interface/IPancakeRouter02.sol";
+import "./interface/IPancakeFactory.sol";
 
+import "./library/BEP20.sol";
 import "./library/SafeMath.sol";
-
 import "./library/Address.sol";
 
-contract Oppa is Context, IERC20, Ownable {
+contract Oppa is BEP20("Oppa", "OPPA") {
     using SafeMath for uint256;
     using Address for address;
 
@@ -48,14 +47,14 @@ contract Oppa is Context, IERC20, Ownable {
     string private _symbol = "OPPA";
     uint8 private _decimals = 18;
 
-    uint256 public _taxFee = 9;
+    uint256 public _taxFee = 2;
     uint256 private _previousTaxFee = _taxFee;
 
     uint256 public _liquidityFee = 5;
     uint256 private _previousLiquidityFee = _liquidityFee;
 
-    IUniswapV2Router02 public immutable uniswapV2Router;
-    address public immutable uniswapV2Pair;
+    IPancakeRouter02 public immutable pancakeRouter02;
+    address public immutable pancakePair;
 
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
@@ -79,15 +78,17 @@ contract Oppa is Context, IERC20, Ownable {
     constructor() public {
         _rOwned[_msgSender()] = _rTotal;
 
-        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(
+        IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
             0xD99D1c33F9fC3444f8101754aBC46c52416550D1
         );
         // Create a uniswap pair for this new token
-        uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
-            .createPair(address(this), _uniswapV2Router.WETH());
+        pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
+            address(this),
+            _pancakeV2Router.WETH()
+        );
 
         // set the rest of the contract variables
-        uniswapV2Router = _uniswapV2Router;
+        pancakeRouter02 = _pancakeV2Router;
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
@@ -95,17 +96,17 @@ contract Oppa is Context, IERC20, Ownable {
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
 
-    function name() public view returns (string memory) {
-        return _name;
-    }
+    // function name() public view returns (string memory) {
+    //     return _name;
+    // }
 
-    function symbol() public view returns (string memory) {
-        return _symbol;
-    }
+    // function symbol() public view returns (string memory) {
+    //     return _symbol;
+    // }
 
-    function decimals() public view returns (uint8) {
-        return _decimals;
-    }
+    // function decimals() public view returns (uint8) {
+    //     return _decimals;
+    // }
 
     function totalSupply() public view override returns (uint256) {
         return _tTotal;
@@ -167,6 +168,7 @@ contract Oppa is Context, IERC20, Ownable {
     function increaseAllowance(address spender, uint256 addedValue)
         public
         virtual
+        override
         returns (bool)
     {
         _approve(
@@ -180,6 +182,7 @@ contract Oppa is Context, IERC20, Ownable {
     function decreaseAllowance(address spender, uint256 subtractedValue)
         public
         virtual
+        override
         returns (bool)
     {
         _approve(
@@ -444,12 +447,12 @@ contract Oppa is Context, IERC20, Ownable {
         // generate the uniswap pair path of token -> weth
         address[] memory path = new address[](2);
         path[0] = address(this);
-        path[1] = uniswapV2Router.WETH();
+        path[1] = pancakeRouter02.WETH();
 
-        _approve(address(this), address(uniswapV2Router), tokenAmount);
+        _approve(address(this), address(pancakeRouter02), tokenAmount);
 
         // make the swap
-        uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+        pancakeRouter02.swapExactTokensForETHSupportingFeeOnTransferTokens(
             tokenAmount,
             0, // accept any amount of ETH
             path,
@@ -504,7 +507,7 @@ contract Oppa is Context, IERC20, Ownable {
         address owner,
         address spender,
         uint256 amount
-    ) private {
+    ) internal override {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 
@@ -514,10 +517,10 @@ contract Oppa is Context, IERC20, Ownable {
 
     function addLiquidity(uint256 tokenAmount, uint256 ethAmount) private {
         // approve token transfer to cover all possible scenarios
-        _approve(address(this), address(uniswapV2Router), tokenAmount);
+        _approve(address(this), address(pancakeRouter02), tokenAmount);
 
         // add the liquidity
-        uniswapV2Router.addLiquidityETH{value: ethAmount}(
+        pancakeRouter02.addLiquidityETH{value: ethAmount}(
             address(this),
             tokenAmount,
             0, // slippage is unavoidable
@@ -551,7 +554,7 @@ contract Oppa is Context, IERC20, Ownable {
         address from,
         address to,
         uint256 amount
-    ) private {
+    ) internal override {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
@@ -576,7 +579,7 @@ contract Oppa is Context, IERC20, Ownable {
         if (
             overMinTokenBalance &&
             !inSwapAndLiquify &&
-            from != uniswapV2Pair &&
+            from != pancakePair &&
             swapAndLiquifyEnabled
         ) {
             contractTokenBalance = numTokensSellToAddToLiquidity;

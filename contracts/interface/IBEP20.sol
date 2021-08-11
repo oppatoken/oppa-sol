@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-interface IERC20 {
+/**
+ * @dev Interface of the BEP20 standard as defined in the EIP.
+ */
+interface IBEP20 {
+    /**
+     * @dev Returns the amount of tokens in existence.
+     */
     function totalSupply() external view returns (uint256);
 
     /**
