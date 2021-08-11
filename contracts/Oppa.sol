@@ -69,6 +69,9 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         uint256 tokensIntoLiqudity
     );
 
+    event Log(string message);
+    event LogAddress(string message, address logAddress);
+
     modifier lockTheSwap() {
         inSwapAndLiquify = true;
         _;
@@ -286,6 +289,9 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
+        /**
+        @dev */
+        emit Log("Transfering from both excluded");
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
@@ -479,6 +485,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
+        emit Log("Transfer to Excluded");
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
@@ -500,6 +507,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
+        emit Log("Transfer from Excluded");
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
@@ -535,6 +543,9 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         address recipient,
         uint256 tAmount
     ) private {
+        /**
+        @dev Pancakeswap uses this when transferring from liquidity to user wallet and vice versa
+         */
         (
             uint256 rAmount,
             uint256 rTransferAmount,
@@ -547,6 +558,9 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
+        emit Log("Transfer Standard");
+        emit LogAddress("Sender", sender);
+        emit LogAddress("Recipient", recipient);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
