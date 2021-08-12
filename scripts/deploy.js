@@ -7,18 +7,8 @@ const hre = require("hardhat");
 
 async function main() {
   /**
-   * @function deploys enrile finance
+   * @function deploys oppa token
    */
-  // const EnrileFinance = await ethers.getContractFactory('EnrileFinance');
-  // const token = await EnrileFinance.deploy();
-  // await token.mint("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", parseEther(`${20000000}`).toString());
-  // console.log(token.address);
-  // /**
-  //  * @function deploys ILO
-  //  */
-  // const ILO = await ethers.getContractFactory('ILO');
-  // const ilo = await ILO.deploy();
-  // console.log(ilo.address);
   const Oppa = await ethers.getContractFactory("Oppa");
   const oppa = await Oppa.deploy();
   console.log(oppa.address);

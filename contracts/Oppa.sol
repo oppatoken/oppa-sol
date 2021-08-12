@@ -82,7 +82,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         _rOwned[_msgSender()] = _rTotal;
 
         IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
-            0xD99D1c33F9fC3444f8101754aBC46c52416550D1
+            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
         );
         // Create a uniswap pair for this new token
         pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
@@ -559,6 +559,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
         emit Log("Transfer Standard");
+        emit LogAddress("Message sender", msg.sender);
         emit LogAddress("Sender", sender);
         emit LogAddress("Recipient", recipient);
         emit Transfer(sender, recipient, tTransferAmount);
