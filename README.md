@@ -8,4 +8,4 @@ npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS
 
 npx hardhat verify --network testnet DEPLOYED_CONTRACT_ADDRESS
 
-0xbe3a566c5EbB920Fc8F75Feb3bD3D8303AD9E4f3
+0x111A56A10b161070223712788fd5372412d93cd0

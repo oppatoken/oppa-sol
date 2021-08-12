@@ -36,9 +36,12 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     mapping(address => bool) private _isExcluded;
     address[] private _excluded;
 
+    address development = 0x9b1cc474A52f6B18be5827FBE6383BE5b4f90d4D;
+
     uint256 private constant MAX = ~uint256(0);
 
-    uint256 private maxTxPercent = 100 / 5;
+    uint256 private marketingFeePercent = 3;
+    uint256 private maxTxPercent = 5;
     uint256 private _tTotal = 1000000000000000 * 10**18;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
@@ -84,7 +87,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
             0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
         );
-        // Create a uniswap pair for this new token
+        // Create a pancakeswap pair for this new token
         pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
             address(this),
             _pancakeV2Router.WETH()
@@ -110,6 +113,10 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     // function decimals() public view returns (uint8) {
     //     return _decimals;
     // }
+
+    function burn(uint256 amount) public onlyOwner {
+        _burn(msg.sender, amount);
+    }
 
     function totalSupply() public view override returns (uint256) {
         return _tTotal;
@@ -544,8 +551,68 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         uint256 tAmount
     ) private {
         /**
-        @dev Pancakeswap uses this when transferring from liquidity to user wallet and vice versa
+        @dev Also used when transferring from pancakeswap this when transferring from liquidity to user wallet and vice versa
          */
+
+        /**
+        @dev when buying sender should be :pancakePair
+          */
+
+        if (sender == pancakePair) {
+            /**
+              @dev Tax buy as follows 
+              *Total:  10%
+              Breakdown
+              5% to liquidity pool
+              3% to marketing and development
+              2% burn of total supply
+               */
+            (
+                uint256 rAmount,
+                uint256 rTransferAmount,
+                ,
+                uint256 tTransferAmount,
+                ,
+                uint256 tLiquidity
+            ) = _getValues(tAmount);
+
+            uint256 _marketingAndDevelopmentFee = rTransferAmount.mul(
+                marketingFeePercent.div(100)
+            );
+
+            _rOwned[sender] = _rOwned[sender].sub(rAmount);
+            /**
+            @dev calculate the amount to send deducting the marketing and development fee */
+            _rOwned[recipient] = _rOwned[recipient].add(
+                rTransferAmount.mul(
+                    uint256(uint256(100).sub(marketingFeePercent)).div(100)
+                )
+            );
+
+            /**
+            @dev 5% of to liquidity
+             */
+            _takeLiquidity(tLiquidity);
+            // _reflectFee(rFee, tFee);
+
+            /**
+            @dev 3% of tokens to marketing and development : AIRDROPS AND REWARDS
+             */
+            _rOwned[development] = _rOwned[recipient].add(
+                rTransferAmount.mul(_marketingAndDevelopmentFee)
+            );
+
+            /**
+            @dev burn with 2% of the transaction amount
+             */
+            _burn(msg.sender, rTransferAmount.mul(uint256(2).div(100)));
+
+            emit LogAddress("Contract Caller", msg.sender);
+            emit Transfer(sender, recipient, tTransferAmount);
+
+            return;
+        }
+
         (
             uint256 rAmount,
             uint256 rTransferAmount,
@@ -554,14 +621,15 @@ contract Oppa is BEP20("Oppa", "OPPA") {
             uint256 tFee,
             uint256 tLiquidity
         ) = _getValues(tAmount);
+
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
+        /**
+            @dev calculate the amount to send deducting the marketing and development fee */
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
-        emit Log("Transfer Standard");
-        emit LogAddress("Message sender", msg.sender);
-        emit LogAddress("Sender", sender);
-        emit LogAddress("Recipient", recipient);
+
+        emit LogAddress("Contract Caller", msg.sender);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
