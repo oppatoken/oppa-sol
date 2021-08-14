@@ -21,12 +21,12 @@ module.exports = {
   defaultNetwork: "localhost",
   networks: {
     testnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+      url: "https://data-seed-prebsc-2-s1.binance.org:8545/",
       chainId: 97,
       gasPrice: 20000000000,
       accounts: {
         mnemonic:
-          "prepare please clump pipe witness process clutch remember agree sick pelican retire",
+          "myth like bonus scare over problem client lizard pioneer submit female collect",
       },
     },
   },

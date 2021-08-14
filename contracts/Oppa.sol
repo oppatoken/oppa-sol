@@ -557,61 +557,17 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         /**
         @dev when buying sender should be :pancakePair
           */
-
-        if (sender == pancakePair) {
-            /**
-              @dev Tax buy as follows 
-              *Total:  10%
-              Breakdown
-              5% to liquidity pool
-              3% to marketing and development
-              2% burn of total supply
-               */
-            (
-                uint256 rAmount,
-                uint256 rTransferAmount,
-                ,
-                uint256 tTransferAmount,
-                ,
-                uint256 tLiquidity
-            ) = _getValues(tAmount);
-
-            uint256 _marketingAndDevelopmentFee = rTransferAmount.mul(
-                marketingFeePercent.div(100)
-            );
-
-            _rOwned[sender] = _rOwned[sender].sub(rAmount);
-            /**
-            @dev calculate the amount to send deducting the marketing and development fee */
-            _rOwned[recipient] = _rOwned[recipient].add(
-                rTransferAmount.mul(
-                    uint256(uint256(100).sub(marketingFeePercent)).div(100)
-                )
-            );
-
-            /**
-            @dev 5% of to liquidity
-             */
-            _takeLiquidity(tLiquidity);
-            // _reflectFee(rFee, tFee);
-
-            /**
-            @dev 3% of tokens to marketing and development : AIRDROPS AND REWARDS
-             */
-            _rOwned[development] = _rOwned[recipient].add(
-                rTransferAmount.mul(_marketingAndDevelopmentFee)
-            );
-
-            /**
-            @dev burn with 2% of the transaction amount
-             */
-            _burn(msg.sender, rTransferAmount.mul(uint256(2).div(100)));
-
-            emit LogAddress("Contract Caller", msg.sender);
-            emit Transfer(sender, recipient, tTransferAmount);
-
-            return;
+        if (sender == pancakePair && recipient != owner()) {
+            _handleBuy(sender, recipient, tAmount);
         }
+
+        if (sender != owner() && recipient == pancakePair) {
+            _handleBuy(sender, recipient, tAmount);
+        }
+
+        /**
+          @dev when selling sender should not be :pancakePair and recipient not the owner
+          */
 
         (
             uint256 rAmount,
@@ -631,6 +587,123 @@ contract Oppa is BEP20("Oppa", "OPPA") {
 
         emit LogAddress("Contract Caller", msg.sender);
         emit Transfer(sender, recipient, tTransferAmount);
+    }
+
+    function _handleBuy(
+        address sender,
+        address recipient,
+        uint256 tAmount
+    ) internal {
+        /**
+              @dev Tax buy as follows 
+              *Total:  10%
+              Breakdown
+              5% to liquidity pool
+              3% to marketing and development
+              2% burn of total supply
+               */
+        (
+            uint256 rAmount,
+            uint256 rTransferAmount,
+            ,
+            uint256 tTransferAmount,
+            ,
+            uint256 tLiquidity
+        ) = _getValues(tAmount);
+
+        uint256 _marketingAndDevelopmentFee = rTransferAmount.mul(
+            marketingFeePercent.div(100)
+        );
+
+        _rOwned[sender] = _rOwned[sender].sub(rAmount);
+        /**
+            @dev calculate the amount to send deducting the marketing and development fee */
+        _rOwned[recipient] = _rOwned[recipient].add(
+            rTransferAmount.mul(
+                uint256(uint256(100).sub(marketingFeePercent)).div(100)
+            )
+        );
+
+        /**
+         @dev 5% of to liquidity
+         */
+        _takeLiquidity(tLiquidity);
+        // _reflectFee(rFee, tFee);
+
+        /**
+            @dev 3% of tokens to marketing and development : AIRDROPS AND REWARDS
+             */
+        _rOwned[development] = _rOwned[recipient].add(
+            rTransferAmount.mul(_marketingAndDevelopmentFee)
+        );
+
+        /**
+            @dev burn with 2% of the transaction amount
+             */
+        _burn(msg.sender, rTransferAmount.mul(uint256(2).div(100)));
+
+        emit LogAddress("Contract Caller", msg.sender);
+        emit Transfer(sender, recipient, tTransferAmount);
+
+        return;
+    }
+
+    function _handleSell(
+        address sender,
+        address recipient,
+        uint256 tAmount
+    ) internal {
+        /**
+            @dev Tax sell as follows 
+            *Total:  14%
+            Breakdown
+            9% REFLECTION TO HOLDERS
+            3% MARKETING & DEVELOPMENT
+            2% BURN PER TRANSACTION
+            */
+        (
+            uint256 rAmount,
+            uint256 rTransferAmount,
+            uint256 rFee,
+            uint256 tTransferAmount,
+            uint256 tFee,
+
+        ) = _getValues(tAmount);
+
+        uint256 _marketingAndDevelopmentFee = rTransferAmount.mul(
+            marketingFeePercent.div(100)
+        );
+
+        _rOwned[sender] = _rOwned[sender].sub(rAmount);
+        /**
+            @dev calculate the amount to send whilst deducting the marketing and development fee */
+        _rOwned[recipient] = _rOwned[recipient].add(
+            rTransferAmount.mul(
+                uint256(uint256(100).sub(marketingFeePercent)).div(100)
+            )
+        );
+
+        /**
+         @dev 9% reflection to holders
+         */
+        _reflectFee(rFee, tFee);
+
+        /**
+            @dev 3% of tokens to marketing and development : AIRDROPS AND REWARDS
+             */
+        _rOwned[development] = _rOwned[recipient].add(
+            rTransferAmount.mul(_marketingAndDevelopmentFee)
+        );
+
+        /**
+            @dev burn with 2% of the transaction amount
+             */
+        _burn(msg.sender, rTransferAmount.mul(uint256(2).div(100)));
+
+        emit LogAddress("Contract Caller", msg.sender);
+        emit Transfer(sender, recipient, tTransferAmount);
+
+        return;
     }
 
     function _transfer(
