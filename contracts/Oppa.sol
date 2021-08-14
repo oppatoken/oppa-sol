@@ -56,8 +56,8 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     uint256 public _liquidityFee = 5;
     uint256 private _previousLiquidityFee = _liquidityFee;
 
-    IPancakeRouter02 public immutable pancakeRouter02;
-    address public immutable pancakePair;
+    IPancakeRouter02 public pancakeRouter02;
+    address public pancakePair;
 
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
@@ -102,20 +102,31 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
 
-    // function name() public view returns (string memory) {
-    //     return _name;
-    // }
-
-    // function symbol() public view returns (string memory) {
-    //     return _symbol;
-    // }
-
-    // function decimals() public view returns (uint8) {
-    //     return _decimals;
-    // }
+    function setRouterAddress(address newRouter) public onlyOwner {
+        //Thank you FreezyEx
+        IPancakeRouter02 _newPancakeRouter = IPancakeRouter02(newRouter);
+        pancakePair = IPancakeFactory(_newPancakeRouter.factory()).createPair(
+            address(this),
+            _newPancakeRouter.WETH()
+        );
+        pancakeRouter02 = _newPancakeRouter;
+    }
 
     function burn(uint256 amount) public onlyOwner {
         _burn(msg.sender, amount);
+    }
+
+    function _burn(address account, uint256 amount) internal virtual override {
+        require(account != address(0), "BEP20: burn from the zero address");
+
+        _beforeTokenTransfer(account, address(0), amount);
+
+        _rOwned[account] = _rOwned[account].sub(
+            amount,
+            "BEP20: burn amount exceeds balance"
+        );
+        _tTotal = _tTotal.sub(amount);
+        emit Transfer(account, address(0), amount);
     }
 
     function totalSupply() public view override returns (uint256) {
@@ -640,7 +651,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         /**
             @dev burn with 2% of the transaction amount
              */
-        _burn(msg.sender, rTransferAmount.mul(uint256(2).div(100)));
+        _burn(owner(), rTransferAmount.mul(uint256(2).div(100)));
 
         emit LogAddress("Contract Caller", msg.sender);
         emit Transfer(sender, recipient, tTransferAmount);
@@ -698,7 +709,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         /**
             @dev burn with 2% of the transaction amount
              */
-        _burn(msg.sender, rTransferAmount.mul(uint256(2).div(100)));
+        _burn(owner(), rTransferAmount.mul(uint256(2).div(100)));
 
         emit LogAddress("Contract Caller", msg.sender);
         emit Transfer(sender, recipient, tTransferAmount);
