@@ -6,3 +6,4 @@ artifacts
 package-lock.json
 yarn.lock
 contracts/s.sol
+.env

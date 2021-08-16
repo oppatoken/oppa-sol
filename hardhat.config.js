@@ -2,6 +2,10 @@ const { parseEther } = require("ethers/lib/utils");
 
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("dotenv").config();
+
+require("./scripts/tasks");
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -10,15 +14,6 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   for (const account of accounts) {
     console.log(account.address);
   }
-});
-
-task("amount", "Test amount", async (taskArgs, hre) => {
-  const token = await ethers.getContractAt(
-    "Oppa",
-    "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3"
-  );
-
-  console.log(token);
 });
 
 // You need to export an object to set up your config
@@ -32,16 +27,15 @@ module.exports = {
   defaultNetwork: "localhost",
   networks: {
     testnet: {
-      url: "https://data-seed-prebsc-2-s1.binance.org:8545/",
+      url: `${process.env.TEST_NET_URL}`,
       chainId: 97,
       gasPrice: 20000000000,
       accounts: {
-        mnemonic:
-          "myth like bonus scare over problem client lizard pioneer submit female collect",
+        mnemonic: `${process.env.MNEMONIC}`,
       },
     },
   },
   etherscan: {
-    apiKey: "TWJ1BWSDDZAEMQKISXDAF5J6HRMU737U1W",
+    apiKey: `${process.env.ETHERSCAN_API_KEY}`,
   },
 };

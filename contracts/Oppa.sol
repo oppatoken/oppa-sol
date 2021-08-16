@@ -23,6 +23,8 @@ import "./library/BEP20.sol";
 import "./library/SafeMath.sol";
 import "./library/Address.sol";
 
+import "hardhat/console.sol";
+
 contract Oppa is BEP20("Oppa", "OPPA") {
     using SafeMath for uint256;
     using Address for address;
@@ -36,7 +38,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     mapping(address => bool) private _isExcluded;
     address[] private _excluded;
 
-    address development = 0x9b1cc474A52f6B18be5827FBE6383BE5b4f90d4D;
+    address development = 0x26a108B2474a4E14F9a5062e837152D74F4382Eb;
 
     uint256 private constant MAX = ~uint256(0);
 
@@ -61,6 +63,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
 
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
+    bool public tokenomicsEnabled = false;
 
     uint256 private numTokensSellToAddToLiquidity = 500000 * 10**6 * 10**9;
 
@@ -110,6 +113,10 @@ contract Oppa is BEP20("Oppa", "OPPA") {
             _newPancakeRouter.WETH()
         );
         pancakeRouter02 = _newPancakeRouter;
+    }
+
+    function setTokenomicsEnabled(bool _enabled) public onlyOwner {
+        tokenomicsEnabled = _enabled;
     }
 
     function burn(uint256 amount) public onlyOwner {
@@ -561,160 +568,62 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         address recipient,
         uint256 tAmount
     ) private {
+        (
+            uint256 rAmount,
+            uint256 rTransferAmount,
+            uint256 rFee,
+            uint256 tTransferAmount,
+            uint256 tFee,
+            uint256 tLiquidity
+        ) = _getValues(tAmount);
         /**
         @dev Also used when transferring from pancakeswap this when transferring from liquidity to user wallet and vice versa
          */
 
         /**
-        @dev when buying sender should be :pancakePair
+        @dev when buying sender should be :pancakePair 5%
           */
-        if (sender == pancakePair && recipient != owner()) {
-            _handleBuy(sender, recipient, tAmount);
-        }
-
-        if (sender != owner() && recipient == pancakePair) {
-            _handleBuy(sender, recipient, tAmount);
+        if (
+            (sender == pancakePair && recipient != owner()) && tokenomicsEnabled
+        ) {
+            _takeLiquidity(tLiquidity);
         }
 
         /**
-          @dev when selling sender should not be :pancakePair and recipient not the owner
+        @dev when selling sender should not be :pancakePair and recipient not the owner 9%
           */
-
-        (
-            uint256 rAmount,
-            uint256 rTransferAmount,
-            uint256 rFee,
-            uint256 tTransferAmount,
-            uint256 tFee,
-            uint256 tLiquidity
-        ) = _getValues(tAmount);
+        if (
+            (sender != owner() && recipient == pancakePair) && tokenomicsEnabled
+        ) {
+            _reflectFee(rFee, tFee);
+        }
 
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
         /**
-            @dev calculate the amount to send deducting the marketing and development fee */
+        @dev calculate the amount to send deducting the marketing and development fee */
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
-        _takeLiquidity(tLiquidity);
-        _reflectFee(rFee, tFee);
 
-        emit LogAddress("Contract Caller", msg.sender);
+        if (
+            (pancakePair == sender || pancakePair == recipient) &&
+            tokenomicsEnabled
+        ) {
+            uint256 amountToBurn = rTransferAmount.mul(2).div(100);
+
+            /**
+            @dev airdrops and marketing fee 3%
+             */
+            transferFrom(
+                recipient,
+                address(development),
+                rTransferAmount.mul(3).div(100)
+            );
+
+            /**
+            @dev burn here  2% */
+            _burn(address(sender), amountToBurn);
+        }
+
         emit Transfer(sender, recipient, tTransferAmount);
-    }
-
-    function _handleBuy(
-        address sender,
-        address recipient,
-        uint256 tAmount
-    ) internal {
-        /**
-              @dev Tax buy as follows 
-              *Total:  10%
-              Breakdown
-              5% to liquidity pool
-              3% to marketing and development
-              2% burn of total supply
-               */
-        (
-            uint256 rAmount,
-            uint256 rTransferAmount,
-            ,
-            uint256 tTransferAmount,
-            ,
-            uint256 tLiquidity
-        ) = _getValues(tAmount);
-
-        uint256 _marketingAndDevelopmentFee = rTransferAmount.mul(
-            marketingFeePercent.div(100)
-        );
-
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        /**
-            @dev calculate the amount to send deducting the marketing and development fee */
-        _rOwned[recipient] = _rOwned[recipient].add(
-            rTransferAmount.mul(
-                uint256(uint256(100).sub(marketingFeePercent)).div(100)
-            )
-        );
-
-        /**
-         @dev 5% of to liquidity
-         */
-        _takeLiquidity(tLiquidity);
-        // _reflectFee(rFee, tFee);
-
-        /**
-            @dev 3% of tokens to marketing and development : AIRDROPS AND REWARDS
-             */
-        _rOwned[development] = _rOwned[recipient].add(
-            rTransferAmount.mul(_marketingAndDevelopmentFee)
-        );
-
-        /**
-            @dev burn with 2% of the transaction amount
-             */
-        _burn(owner(), rTransferAmount.mul(uint256(2).div(100)));
-
-        emit LogAddress("Contract Caller", msg.sender);
-        emit Transfer(sender, recipient, tTransferAmount);
-
-        return;
-    }
-
-    function _handleSell(
-        address sender,
-        address recipient,
-        uint256 tAmount
-    ) internal {
-        /**
-            @dev Tax sell as follows 
-            *Total:  14%
-            Breakdown
-            9% REFLECTION TO HOLDERS
-            3% MARKETING & DEVELOPMENT
-            2% BURN PER TRANSACTION
-            */
-        (
-            uint256 rAmount,
-            uint256 rTransferAmount,
-            uint256 rFee,
-            uint256 tTransferAmount,
-            uint256 tFee,
-
-        ) = _getValues(tAmount);
-
-        uint256 _marketingAndDevelopmentFee = rTransferAmount.mul(
-            marketingFeePercent.div(100)
-        );
-
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        /**
-            @dev calculate the amount to send whilst deducting the marketing and development fee */
-        _rOwned[recipient] = _rOwned[recipient].add(
-            rTransferAmount.mul(
-                uint256(uint256(100).sub(marketingFeePercent)).div(100)
-            )
-        );
-
-        /**
-         @dev 9% reflection to holders
-         */
-        _reflectFee(rFee, tFee);
-
-        /**
-            @dev 3% of tokens to marketing and development : AIRDROPS AND REWARDS
-             */
-        _rOwned[development] = _rOwned[recipient].add(
-            rTransferAmount.mul(_marketingAndDevelopmentFee)
-        );
-
-        /**
-            @dev burn with 2% of the transaction amount
-             */
-        _burn(owner(), rTransferAmount.mul(uint256(2).div(100)));
-
-        emit LogAddress("Contract Caller", msg.sender);
-        emit Transfer(sender, recipient, tTransferAmount);
-
-        return;
     }
 
     function _transfer(
