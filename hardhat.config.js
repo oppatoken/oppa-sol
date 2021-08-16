@@ -1,3 +1,5 @@
+const { parseEther } = require("ethers/lib/utils");
+
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -8,6 +10,15 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   for (const account of accounts) {
     console.log(account.address);
   }
+});
+
+task("amount", "Test amount", async (taskArgs, hre) => {
+  const token = await ethers.getContractAt(
+    "Oppa",
+    "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3"
+  );
+
+  console.log(token);
 });
 
 // You need to export an object to set up your config
