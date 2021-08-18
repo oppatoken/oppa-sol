@@ -56,6 +56,4 @@ task("factory", "Add LP", async (taskArgs, hre) => {
     "Current Oppa Supply:",
     numberWithCommas(fromWei(await (await token.totalSupply()).toString()))
   );
-
-  /**@dev approve address 0 first */
 });
