@@ -38,11 +38,12 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     mapping(address => bool) private _isExcluded;
     address[] private _excluded;
 
-    address development = 0x26a108B2474a4E14F9a5062e837152D74F4382Eb;
+    address development = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
 
     uint256 private constant MAX = ~uint256(0);
 
-    uint256 private marketingFeePercent = 3;
+    uint256 private _marketingFeePercent = 3;
+    uint256 private _burnRate = 2;
     uint256 private maxTxPercent = 5;
     uint256 private _tTotal = 1000000000000000 * 10**18;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
@@ -84,7 +85,8 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         inSwapAndLiquify = false;
     }
 
-    constructor() public {
+    constructor(uint256 totalSupply) public {
+        _tTotal = totalSupply;
         _rOwned[_msgSender()] = _rTotal;
 
         IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
@@ -132,7 +134,10 @@ contract Oppa is BEP20("Oppa", "OPPA") {
             amount,
             "BEP20: burn amount exceeds balance"
         );
-        _tTotal = _tTotal.sub(amount);
+        _tTotal = _tTotal.sub(
+            amount,
+            "BEP20: total supply less than amount to burn"
+        );
         emit Transfer(account, address(0), amount);
     }
 
@@ -146,7 +151,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     }
 
     function maxTxAmount() private view returns (uint256) {
-        return totalSupply().mul(maxTxPercent);
+        return (totalSupply() * maxTxPercent) / 100;
     }
 
     function transfer(address recipient, uint256 amount)
@@ -328,9 +333,8 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         _liquidityFee = liquidityFee;
     }
 
-    function setMaxTxPercent(uint256 newMaxTxPercent) external onlyOwner {
-        uint256 HUNDER_PERCENT = 100;
-        maxTxPercent = HUNDER_PERCENT.div(newMaxTxPercent);
+    function setMaxTxPercent(uint256 _newMaxTxPercent) external onlyOwner {
+        maxTxPercent = _newMaxTxPercent;
     }
 
     function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
@@ -567,10 +571,10 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         address sender,
         address recipient,
         uint256 tAmount
-    ) private {
+    ) public {
         (
             uint256 rAmount,
-            uint256 rTransferAmount,
+            ,
             uint256 rFee,
             uint256 tTransferAmount,
             uint256 tFee,
@@ -584,8 +588,10 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         @dev when buying sender should be :pancakePair 5%
           */
         if (
-            (sender == pancakePair && recipient != owner()) && tokenomicsEnabled
+            (pancakePair == sender && recipient != owner()) && tokenomicsEnabled
         ) {
+            /**
+            @dev add to liquidity when buying */
             _takeLiquidity(tLiquidity);
         }
 
@@ -595,33 +601,43 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         if (
             (sender != owner() && recipient == pancakePair) && tokenomicsEnabled
         ) {
+            /**
+            @dev reflect to users when selling */
             _reflectFee(rFee, tFee);
         }
 
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        /**
-        @dev calculate the amount to send deducting the marketing and development fee */
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+
+        uint256 amountToReceive = rAmount;
+        uint256 marketingAndDevelopment;
+        uint256 amountToLiquidity = (tAmount * 5) / 100;
+        uint256 amountToBurn = (tAmount * _burnRate);
+
+        _takeLiquidity(tLiquidity);
 
         if (
             (pancakePair == sender || pancakePair == recipient) &&
             tokenomicsEnabled
         ) {
-            uint256 amountToBurn = rTransferAmount.mul(2).div(100);
-
+            amountToReceive = rAmount.sub(marketingAndDevelopment).sub(
+                amountToLiquidity
+            );
             /**
             @dev airdrops and marketing fee 3%
              */
-            transferFrom(
-                recipient,
-                address(development),
-                rTransferAmount.mul(3).div(100)
+            marketingAndDevelopment = (tAmount * _marketingFeePercent) / 100;
+            _rOwned[address(development)] = _rOwned[address(development)].add(
+                marketingAndDevelopment
             );
-
+            _approve(_msgSender(), recipient, amountToBurn);
             /**
             @dev burn here  2% */
-            _burn(address(sender), amountToBurn);
+            _burn(recipient, amountToBurn);
         }
+
+        /**
+        @dev calculate the amount to send deducting the marketing and development fee */
+        _rOwned[recipient] = _rOwned[recipient].add(amountToReceive);
 
         emit Transfer(sender, recipient, tTransferAmount);
     }
@@ -634,11 +650,13 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
-        if (from != owner() && to != owner())
-            require(
-                amount <= maxTxAmount(),
-                "Transfer amount exceeds the maxTxAmount."
-            );
+        console.log("Amount to sent", amount);
+        console.log("MAX TAX AMOUNt", maxTxAmount());
+        // if (from != owner() && to != owner())
+        //     require(
+        //         amount <= maxTxAmount(),
+        //         "Transfer amount exceeds the maxTxAmount."
+        //     );
 
         // is the token balance of this contract address over the min number of
         // tokens that we need to initiate a swap + liquidity lock?

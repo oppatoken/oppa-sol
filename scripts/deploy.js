@@ -10,8 +10,10 @@ async function main() {
    * @function deploys oppa token
    */
   const Oppa = await ethers.getContractFactory("Oppa");
-  const oppa = await Oppa.deploy();
+  const oppa = await Oppa.deploy("1000000000000000000000000000000000");
   console.log(oppa.address);
+
+  await oppa.burn("200000000000000000000000000000000");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
