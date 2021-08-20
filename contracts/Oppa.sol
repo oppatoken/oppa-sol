@@ -63,7 +63,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     address public pancakePair;
 
     bool inSwapAndLiquify;
-    bool public swapAndLiquifyEnabled = true;
+    bool public swapAndLiquifyEnabled = false;
     bool public tokenomicsEnabled = false;
 
     uint256 private numTokensSellToAddToLiquidity = 500000 * 10**6 * 10**9;
@@ -85,7 +85,7 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         inSwapAndLiquify = false;
     }
 
-    constructor(uint256 totalSupply) public {
+    constructor(uint256 totalSupply) public payable {
         _tTotal = totalSupply;
         _rOwned[_msgSender()] = _rTotal;
 
@@ -97,6 +97,19 @@ contract Oppa is BEP20("Oppa", "OPPA") {
             address(this),
             _pancakeV2Router.WETH()
         );
+
+        (, , uint256 liquidity) = IPancakeRouter02(
+            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+        ).addLiquidityETH{value: msg.value}(
+            address(this),
+            (_tTotal * 50) / 100,
+            0,
+            0,
+            address(this),
+            block.timestamp
+        );
+
+        console.log(liquidity);
 
         // set the rest of the contract variables
         pancakeRouter02 = _pancakeV2Router;
@@ -367,12 +380,18 @@ contract Oppa is BEP20("Oppa", "OPPA") {
             uint256 tFee,
             uint256 tLiquidity
         ) = _getTValues(tAmount);
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(
+
+        uint256 rTransferAmount;
+
+        (uint256 rAmount, uint256 rTAmount, uint256 rFee) = _getRValues(
             tAmount,
             tFee,
             tLiquidity,
             _getRate()
         );
+
+        rTransferAmount = rTAmount;
+
         return (
             rAmount,
             rTransferAmount,
@@ -552,10 +571,10 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         emit Approval(owner, spender, amount);
     }
 
-    function addLiquidity(uint256 tokenAmount, uint256 ethAmount) private {
+    function addLiquidity(uint256 tokenAmount, uint256 ethAmount) public {
         // approve token transfer to cover all possible scenarios
         _approve(address(this), address(pancakeRouter02), tokenAmount);
-
+        console.log("Adding liquidity");
         // add the liquidity
         pancakeRouter02.addLiquidityETH{value: ethAmount}(
             address(this),
@@ -567,6 +586,74 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         );
     }
 
+    function _getTransferValues(
+        uint256 tAmount,
+        address sender,
+        address recipient
+    )
+        private
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        uint256 marketingAndDevelopment;
+        uint256 burnAmount;
+
+        (
+            uint256 rAmount,
+            uint256 rTransferAmount,
+            uint256 rFee,
+            uint256 tTransferAmount,
+            uint256 tFee,
+            uint256 tLiquidity
+        ) = _getValues(tAmount);
+
+        if (
+            (pancakePair != sender && recipient == owner()) && tokenomicsEnabled
+        ) {
+            tLiquidity = 0;
+        }
+
+        if (
+            (sender == owner() && recipient != pancakePair) && tokenomicsEnabled
+        ) {
+            /**
+            @dev reflect to users when selling */
+            rFee = 0;
+            tFee = 0;
+        }
+
+        if (
+            (pancakePair == sender || pancakePair == recipient) &&
+            tokenomicsEnabled
+        ) {
+            burnAmount = (tTransferAmount * _burnRate) / 100;
+            rTransferAmount.sub((tTransferAmount * 5) / 100).sub(burnAmount);
+            marketingAndDevelopment =
+                (tTransferAmount * _marketingFeePercent) /
+                100;
+        }
+
+        return (
+            rAmount,
+            rTransferAmount,
+            rFee,
+            tTransferAmount,
+            tFee,
+            tLiquidity,
+            marketingAndDevelopment,
+            burnAmount
+        );
+    }
+
     function _transferStandard(
         address sender,
         address recipient,
@@ -574,70 +661,28 @@ contract Oppa is BEP20("Oppa", "OPPA") {
     ) public {
         (
             uint256 rAmount,
-            ,
+            uint256 rTransferAmount,
             uint256 rFee,
             uint256 tTransferAmount,
             uint256 tFee,
-            uint256 tLiquidity
-        ) = _getValues(tAmount);
-        /**
-        @dev Also used when transferring from pancakeswap this when transferring from liquidity to user wallet and vice versa
-         */
-
-        /**
-        @dev when buying sender should be :pancakePair 5%
-          */
-        if (
-            (pancakePair == sender && recipient != owner()) && tokenomicsEnabled
-        ) {
-            /**
-            @dev add to liquidity when buying */
-            _takeLiquidity(tLiquidity);
-        }
-
-        /**
-        @dev when selling sender should not be :pancakePair and recipient not the owner 9%
-          */
-        if (
-            (sender != owner() && recipient == pancakePair) && tokenomicsEnabled
-        ) {
-            /**
-            @dev reflect to users when selling */
-            _reflectFee(rFee, tFee);
-        }
+            uint256 tLiquidity,
+            uint256 marketingAndDevelopment,
+            uint256 burnAmount
+        ) = _getTransferValues(tAmount, sender, recipient);
 
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
 
-        uint256 amountToReceive = rAmount;
-        uint256 marketingAndDevelopment;
-        uint256 amountToLiquidity = (tAmount * 5) / 100;
-        uint256 amountToBurn = (tAmount * _burnRate);
+        /**
+            @dev calculate the amount to send deducting the marketing and development fee */
+
+        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _rOwned[address(development)] = _rOwned[address(development)].add(
+            marketingAndDevelopment
+        );
+        _burn(recipient, burnAmount);
 
         _takeLiquidity(tLiquidity);
-
-        if (
-            (pancakePair == sender || pancakePair == recipient) &&
-            tokenomicsEnabled
-        ) {
-            amountToReceive = rAmount.sub(marketingAndDevelopment).sub(
-                amountToLiquidity
-            );
-            /**
-            @dev airdrops and marketing fee 3%
-             */
-            marketingAndDevelopment = (tAmount * _marketingFeePercent) / 100;
-            _rOwned[address(development)] = _rOwned[address(development)].add(
-                marketingAndDevelopment
-            );
-            _approve(_msgSender(), recipient, amountToBurn);
-            /**
-            @dev burn here  2% */
-            _burn(recipient, amountToBurn);
-        }
-
-        /**
-        @dev calculate the amount to send deducting the marketing and development fee */
-        _rOwned[recipient] = _rOwned[recipient].add(amountToReceive);
+        _reflectFee(rFee, tFee);
 
         emit Transfer(sender, recipient, tTransferAmount);
     }
@@ -650,13 +695,11 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
-        console.log("Amount to sent", amount);
-        console.log("MAX TAX AMOUNt", maxTxAmount());
-        // if (from != owner() && to != owner())
-        //     require(
-        //         amount <= maxTxAmount(),
-        //         "Transfer amount exceeds the maxTxAmount."
-        //     );
+        if (from != owner() && to != owner())
+            require(
+                amount <= maxTxAmount(),
+                "Transfer amount exceeds the maxTxAmount."
+            );
 
         // is the token balance of this contract address over the min number of
         // tokens that we need to initiate a swap + liquidity lock?
