@@ -3,17 +3,17 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
+
 const hre = require("hardhat");
 
 async function main() {
   /**
    * @function deploys oppa token
    */
-  const Oppa = await ethers.getContractFactory("Oppa");
-  const oppa = await Oppa.deploy("1000000000000000000000000000000000");
-  console.log(oppa.address);
-
-  await oppa.burn("200000000000000000000000000000000");
+  const OppaTwo = await ethers.getContractFactory("OppaTwo");
+  const oppaTwo = await OppaTwo.deploy();
+  console.log("TOKEN ADDRESS: ", oppaTwo.address);
+  console.log("PAIR ADDRESS: ", await oppaTwo.pancakePair());
 }
 
 // We recommend this pattern to be able to use async/await everywhere

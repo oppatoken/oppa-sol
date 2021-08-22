@@ -97,19 +97,18 @@ contract Oppa is BEP20("Oppa", "OPPA") {
             address(this),
             _pancakeV2Router.WETH()
         );
+        // (, , uint256 liquidity) = IPancakeRouter02(
+        //     0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+        // ).addLiquidityETH{value: msg.value}(
+        //     address(this),
+        //     (_tTotal * 50) / 100,
+        //     0,
+        //     0,
+        //     address(this),
+        //     block.timestamp
+        // );
 
-        (, , uint256 liquidity) = IPancakeRouter02(
-            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
-        ).addLiquidityETH{value: msg.value}(
-            address(this),
-            (_tTotal * 50) / 100,
-            0,
-            0,
-            address(this),
-            block.timestamp
-        );
-
-        console.log(liquidity);
+        // console.log(liquidity);
 
         // set the rest of the contract variables
         pancakeRouter02 = _pancakeV2Router;
@@ -659,27 +658,35 @@ contract Oppa is BEP20("Oppa", "OPPA") {
         address recipient,
         uint256 tAmount
     ) public {
+        // (
+        //     uint256 rAmount,
+        //     uint256 rTransferAmount,
+        //     uint256 rFee,
+        //     uint256 tTransferAmount,
+        //     uint256 tFee,
+        //     uint256 tLiquidity,
+        //     uint256 marketingAndDevelopment,
+        //     uint256 burnAmount
+        // ) = _getTransferValues(tAmount, sender, recipient);
+
         (
             uint256 rAmount,
             uint256 rTransferAmount,
             uint256 rFee,
             uint256 tTransferAmount,
             uint256 tFee,
-            uint256 tLiquidity,
-            uint256 marketingAndDevelopment,
-            uint256 burnAmount
-        ) = _getTransferValues(tAmount, sender, recipient);
-
+            uint256 tLiquidity
+        ) = _getValues(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
 
         /**
             @dev calculate the amount to send deducting the marketing and development fee */
 
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
-        _rOwned[address(development)] = _rOwned[address(development)].add(
-            marketingAndDevelopment
-        );
-        _burn(recipient, burnAmount);
+        // _rOwned[address(development)] = _rOwned[address(development)].add(
+        //     marketingAndDevelopment
+        // );
+        // _burn(recipient, burnAmount);
 
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
