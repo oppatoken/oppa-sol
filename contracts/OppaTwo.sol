@@ -10,13 +10,16 @@ import "./interface/IPancakeFactory.sol";
 import "./library/BEP20.sol";
 import "./library/SafeMath.sol";
 import "./library/Address.sol";
+import "./library/Iterable.sol";
 
 import "hardhat/console.sol";
 
 contract OppaTwo is Context, IBEP20, Ownable {
-    using SafeMath for uint256;
+    using IterableMapping for IterableMapping.Map;
+    IterableMapping.Map private _rewardees;
 
-    mapping(address => uint256) private _balances;
+    using SafeMath for uint256;
+    IterableMapping.Map private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -31,6 +34,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
     string private _name;
 
     address marketing = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
+    address development = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
 
     IPancakeRouter02 public pancakeRouter02;
     address public pancakePair;
@@ -41,18 +45,18 @@ contract OppaTwo is Context, IBEP20, Ownable {
         _decimals = 18;
 
         _totalSupply = 1000000000000000 * 10**18;
-        _balances[msg.sender] = _totalSupply;
+        _balances.set(msg.sender, _totalSupply);
 
-        IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
-            0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0
-        );
+        // IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
+        //     0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0
+        // );
         // Create a pancakeswap pair for this new token
-        pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
-            address(this),
-            _pancakeV2Router.WETH()
-        );
+        // pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
+        //     address(this),
+        //     _pancakeV2Router.WETH()
+        // );
 
-        pancakeRouter02 = _pancakeV2Router;
+        // pancakeRouter02 = _pancakeV2Router;
 
         _burn(msg.sender, 200000000000000 * 10**18);
         emit Transfer(address(0), msg.sender, _totalSupply);
@@ -102,7 +106,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
         override
         returns (uint256)
     {
-        return _balances[account];
+        return _balances.get(account) + calculateRewards();
     }
 
     /**
@@ -278,44 +282,98 @@ contract OppaTwo is Context, IBEP20, Ownable {
         if (sender != owner())
             require(amount <= _maxTxAmount(), "OPPA: anti-dump engaged");
         require(
-            _balances[recipient].add(amount) <= _maxTxAmount(),
+            _balances.get(recipient).add(amount) <= _maxTxAmount(),
             "OPPA: anti-whale engaged"
         );
 
-        _balances[sender] = _balances[sender].sub(
-            amount,
-            "OPPA: transfer amount exceeds balance"
+        _balances.set(
+            sender,
+            _balances.get(sender).sub(
+                amount,
+                "OPPA: transfer amount exceeds balance"
+            )
         );
 
-        _balances[recipient] = _balances[recipient].add(
-            amount.mul(97).div(100)
+        _balances.set(
+            recipient,
+            _balances.get(recipient).add(amount.mul(97).div(100))
         );
 
-        /**
+        if (sender == pancakePair || recipient == pancakePair) {
+            /**
         @dev Marketing fee sent to marketing address */
-        _balances[marketing] = _balances[marketing].add(amount.mul(3).div(100));
+            _balances.set(
+                marketing,
+                _balances.get(marketing).add(amount.mul(3).div(100))
+            );
 
-        /**
+            /**
         @dev burn 2% of transaction */
-        _burn(recipient, amount.mul(2).div(100));
+            _burn(recipient, amount.mul(2).div(100));
+        }
 
         // TODO: Replace here with add liquidity function
         if (sender == pancakePair) {
-            _balances[recipient] = _balances[recipient].sub(
-                amount.mul(5).div(100)
+            _balances.set(
+                recipient,
+                _balances.get(recipient).sub(amount.mul(5).div(100))
             );
             _mockLiquidity = _mockLiquidity.add(amount.mul(5).div(100));
         }
 
         // TODO: replace with pancake pair clause
         if (recipient == pancakePair) {
-            _balances[recipient] = _balances[recipient].sub(
-                amount.mul(9).div(100)
+            _balances.set(
+                recipient,
+                _balances.get(recipient).sub(amount.mul(9).div(100))
             );
             _reflectedBalances = _reflectedBalances.add(amount.mul(9).div(100));
+
+            addRewardee(recipient);
         }
 
         emit Transfer(sender, recipient, amount);
+    }
+
+    function setRewardee() public {
+        for (uint256 index = 4; index < 8; index++) {
+            _balances.set(address(index), 8);
+            addRewardee(address(index));
+        }
+        _reflectedBalances = 80;
+
+        console.log(_rewardees.size());
+
+        for (uint256 index = 4; index < 8; index++) {
+            console.log(
+                "Calculate Balance: ",
+                _balances.get(address(index)) + calculateRewards()
+            );
+        }
+    }
+
+    /**
+    
+    @dev add rewardees onto the rewards pool
+    -> if the rewardee has no balance
+      */
+
+    function addRewardee(address _rewardee) internal {
+        if (_balances.get(_rewardee) < 1) {
+            _rewardees.remove(_rewardee);
+            return;
+        }
+
+        _rewardees.set(_rewardee, 0);
+    }
+
+    /**
+    @dev calculate rewards based on the number of rewardees on current reward pool
+     */
+
+    function calculateRewards() private view returns (uint256) {
+        uint256 reward = _reflectedBalances.div(_rewardees.size());
+        return reward;
     }
 
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
@@ -331,7 +389,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
         require(account != address(0), "BEP20: mint to the zero address");
 
         _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
+        _balances.set(account, _balances.get(account).add(amount));
         emit Transfer(address(0), account, amount);
     }
 
@@ -349,9 +407,12 @@ contract OppaTwo is Context, IBEP20, Ownable {
     function _burn(address account, uint256 amount) internal {
         require(account != address(0), "BEP20: burn from the zero address");
 
-        _balances[account] = _balances[account].sub(
-            amount,
-            "BEP20: burn amount exceeds balance"
+        _balances.set(
+            account,
+            _balances.get(account).sub(
+                amount,
+                "BEP20: burn amount exceeds balance"
+            )
         );
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
