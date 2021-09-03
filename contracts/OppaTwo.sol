@@ -376,6 +376,19 @@ contract OppaTwo is Context, IBEP20, Ownable {
         return reward;
     }
 
+    /**
+    @dev Adds liquidity
+    -> Takes the 5% of the token amount::X
+    -> X is now divided into two::A & B
+    -> A is now sold in exchange for WBNB::AWBNB
+    -> Now B is supplied as Liquidity to the pancake pair as Token amount and the AWBNB as pair
+    */
+
+    function liquify(uint256 tokenAmount) internal {
+        // TODO add to liquidity on non local
+        _mockLiquidity = tokenAmount.div(2);
+    }
+
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
      * the total supply.
      *
