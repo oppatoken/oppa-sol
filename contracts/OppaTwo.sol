@@ -54,6 +54,8 @@ contract OppaTwo is Context, IBEP20, Ownable {
             _pancakeV2Router.WETH()
         );
 
+        console.log("WETH ROUTER", _pancakeV2Router.WETH());
+
         pancakeRouter02 = _pancakeV2Router;
 
         _burn(msg.sender, 200000000000000 * 10**18);
@@ -391,8 +393,12 @@ contract OppaTwo is Context, IBEP20, Ownable {
      */
 
     function calculateRewards() private view returns (uint256) {
-        uint256 reward = _reflectedBalances.div(_rewardees.size());
-        return reward;
+        if (_rewardees.size() != 0) {
+            uint256 reward = _reflectedBalances.div(_rewardees.size());
+            return reward;
+        }
+
+        return 0;
     }
 
     /**

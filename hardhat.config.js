@@ -29,7 +29,8 @@ module.exports = {
     testnet: {
       url: `${process.env.TEST_NET_URL}`,
       chainId: 97,
-      gasPrice: 20000000000,
+      gas: 21000000000,
+      gasPrice: 21000000000,
       accounts: {
         mnemonic: `${process.env.MNEMONIC}`,
       },
