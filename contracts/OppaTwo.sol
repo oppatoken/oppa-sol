@@ -23,6 +23,13 @@ contract OppaTwo is Context, IBEP20, Ownable {
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
+    struct LiquidityPool {
+        uint256 tokenA;
+        uint256 tokenB;
+    }
+
+    LiquidityPool _lpPair;
+
     uint256 private _totalSupply;
     uint8 private _decimals;
 
@@ -258,6 +265,27 @@ contract OppaTwo is Context, IBEP20, Ownable {
         return _totalSupply.mul(2).div(100);
     }
 
+    /*
+     *
+     @dev Swap tokens for WBNB */
+    function swapTokensForEth(uint256 tokenAmount) private {
+        // generate the uniswap pair path of token -> weth
+        address[] memory path = new address[](2);
+        path[0] = address(this);
+        path[1] = pancakeRouter02.WETH();
+
+        _approve(address(this), address(pancakeRouter02), tokenAmount);
+
+        // make the swap
+        pancakeRouter02.swapExactTokensForETHSupportingFeeOnTransferTokens(
+            tokenAmount,
+            0, // accept any amount of ETH
+            path,
+            address(this),
+            block.timestamp
+        );
+    }
+
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
      *
@@ -301,7 +329,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
 
         if (sender == pancakePair || recipient == pancakePair) {
             /**
-        @dev Marketing fee sent to marketing address */
+        @dev 3% Marketing fee sent to marketing address */
             _balances.set(
                 marketing,
                 _balances.get(marketing).add(amount.mul(3).div(100))
@@ -318,7 +346,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
                 recipient,
                 _balances.get(recipient).sub(amount.mul(5).div(100))
             );
-            _mockLiquidity = _mockLiquidity.add(amount.mul(5).div(100));
+            liquify(amount.mul(5).div(100));
         }
 
         // TODO: replace with pancake pair clause
@@ -386,7 +414,31 @@ contract OppaTwo is Context, IBEP20, Ownable {
 
     function liquify(uint256 tokenAmount) internal {
         // TODO add to liquidity on non local
-        _mockLiquidity = tokenAmount.div(2);
+        _mockLiquidity = _mockLiquidity.add(tokenAmount.div(2));
+
+        uint256 initialBalance = address(this).balance;
+        swapTokensForEth(tokenAmount.div(2));
+
+        // how much ETH did we just swap into?
+        uint256 newBalance = address(this).balance.sub(initialBalance);
+
+        // add liquidity to uniswap
+        addLiquidity(tokenAmount.div(2), newBalance);
+    }
+
+    function addLiquidity(uint256 tokenAmount, uint256 ethAmount) public {
+        // approve token transfer to cover all possible scenarios
+        _approve(address(this), address(pancakeRouter02), tokenAmount);
+        console.log("Adding liquidity");
+        // add the liquidity
+        pancakeRouter02.addLiquidityETH{value: ethAmount}(
+            address(this),
+            tokenAmount,
+            0, // slippage is unavoidable
+            0, // slippage is unavoidable
+            owner(),
+            block.timestamp
+        );
     }
 
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
