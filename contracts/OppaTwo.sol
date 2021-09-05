@@ -23,19 +23,10 @@ contract OppaTwo is Context, IBEP20, Ownable {
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
-    struct LiquidityPool {
-        uint256 tokenA;
-        uint256 tokenB;
-    }
-
-    LiquidityPool _lpPair;
-
     uint256 private _totalSupply;
     uint8 private _decimals;
 
     uint256 _reflectedBalances;
-
-    uint256 _mockLiquidity;
 
     string private _symbol;
     string private _name;
@@ -54,16 +45,16 @@ contract OppaTwo is Context, IBEP20, Ownable {
         _totalSupply = 1000000000000000 * 10**18;
         _balances.set(msg.sender, _totalSupply);
 
-        // IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
-        //     0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0
-        // );
+        IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
+            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+        );
         // Create a pancakeswap pair for this new token
-        // pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
-        //     address(this),
-        //     _pancakeV2Router.WETH()
-        // );
+        pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
+            address(this),
+            _pancakeV2Router.WETH()
+        );
 
-        // pancakeRouter02 = _pancakeV2Router;
+        pancakeRouter02 = _pancakeV2Router;
 
         _burn(msg.sender, 200000000000000 * 10**18);
         emit Transfer(address(0), msg.sender, _totalSupply);
@@ -413,9 +404,6 @@ contract OppaTwo is Context, IBEP20, Ownable {
     */
 
     function liquify(uint256 tokenAmount) internal {
-        // TODO add to liquidity on non local
-        _mockLiquidity = _mockLiquidity.add(tokenAmount.div(2));
-
         uint256 initialBalance = address(this).balance;
         swapTokensForEth(tokenAmount.div(2));
 
