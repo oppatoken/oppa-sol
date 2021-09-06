@@ -54,8 +54,6 @@ contract OppaTwo is Context, IBEP20, Ownable {
             _pancakeV2Router.WETH()
         );
 
-        console.log("WETH ROUTER", _pancakeV2Router.WETH());
-
         pancakeRouter02 = _pancakeV2Router;
 
         _burn(msg.sender, 200000000000000 * 10**18);
@@ -307,6 +305,8 @@ contract OppaTwo is Context, IBEP20, Ownable {
             "OPPA: anti-whale engaged"
         );
 
+        console.log("Transferring");
+
         _balances.set(
             sender,
             _balances.get(sender).sub(
@@ -331,27 +331,34 @@ contract OppaTwo is Context, IBEP20, Ownable {
             /**
         @dev burn 2% of transaction */
             _burn(recipient, amount.mul(2).div(100));
+
+            // TODO: Replace here with add liquidity function
+            if (sender == pancakePair) {
+                _balances.set(
+                    recipient,
+                    _balances.get(recipient).sub(amount.mul(5).div(100))
+                );
+                console.log(sender == pancakePair);
+                // liquify(amount.mul(5).div(100));
+            }
+
+            // TODO: replace with pancake pair clause
+            if (recipient == pancakePair) {
+                _balances.set(
+                    recipient,
+                    _balances.get(recipient).sub(amount.mul(9).div(100))
+                );
+                _reflectedBalances = _reflectedBalances.add(
+                    amount.mul(9).div(100)
+                );
+
+                addRewardee(recipient);
+            }
+
+            return;
         }
 
-        // TODO: Replace here with add liquidity function
-        if (sender == pancakePair) {
-            _balances.set(
-                recipient,
-                _balances.get(recipient).sub(amount.mul(5).div(100))
-            );
-            liquify(amount.mul(5).div(100));
-        }
-
-        // TODO: replace with pancake pair clause
-        if (recipient == pancakePair) {
-            _balances.set(
-                recipient,
-                _balances.get(recipient).sub(amount.mul(9).div(100))
-            );
-            _reflectedBalances = _reflectedBalances.add(amount.mul(9).div(100));
-
-            addRewardee(recipient);
-        }
+        _balances.set(recipient, amount);
 
         emit Transfer(sender, recipient, amount);
     }
@@ -381,7 +388,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
     @dev test function only
      */
     function testLiquify() public {
-        addLiquidity(10 * 10**18, 10**18);
+        addLiquidity(200000000, 100000);
     }
 
     /**

@@ -10,15 +10,27 @@ async function main() {
   /**
    * @function deploys oppa token
    */
+
+  const Iterable = await ethers.getContractFactory("IterableMapping");
+  const iterable = await Iterable.deploy();
+
+  console.log("ITERABLE ADDRESS: ", iterable.address);
   const OppaTwo = await ethers.getContractFactory("OppaTwo", {
     libraries: {
-      IterableMapping: "0x59BCEbd2479E9f6aCD594bA683Afa3c9323788Ec",
+      IterableMapping: iterable.address,
     },
   });
   const oppaTwo = await OppaTwo.deploy();
   console.log("TOKEN ADDRESS: ", oppaTwo.address);
-  console.log("Pair ADDRESS: ", await oppaTwo.pancakePair());
-  console.log("Pair ADDRESS: ", await oppaTwo.pancakeRouter02());
+
+  const Factory = await ethers.getContractFactory("Factory", {
+    libraries: {
+      IterableMapping: iterable.address,
+    },
+  });
+
+  const factory = await Factory.deploy();
+  console.log("FACTORY ADDRESS: ", factory.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
