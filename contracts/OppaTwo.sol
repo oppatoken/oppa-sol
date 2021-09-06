@@ -356,6 +356,10 @@ contract OppaTwo is Context, IBEP20, Ownable {
         emit Transfer(sender, recipient, amount);
     }
 
+    /** 
+    @dev test function only
+    */
+
     function setRewardee() public {
         for (uint256 index = 4; index < 8; index++) {
             _balances.set(address(index), 8);
@@ -371,6 +375,13 @@ contract OppaTwo is Context, IBEP20, Ownable {
                 _balances.get(address(index)) + calculateRewards()
             );
         }
+    }
+
+    /**
+    @dev test function only
+     */
+    function testLiquify() public {
+        addLiquidity(10 * 10**18, 10**18);
     }
 
     /**
