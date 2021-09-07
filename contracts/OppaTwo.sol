@@ -46,7 +46,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
         _balances.set(msg.sender, _totalSupply);
 
         IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
-            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+            0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
         );
         // Create a pancakeswap pair for this new token
         pancakePair = IPancakeFactory(_pancakeV2Router.factory()).createPair(
@@ -56,7 +56,7 @@ contract OppaTwo is Context, IBEP20, Ownable {
 
         pancakeRouter02 = _pancakeV2Router;
 
-        _burn(msg.sender, 200000000000000 * 10**18);
+        // _burn(msg.sender, 200000000000000 * 10**18);
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
 

@@ -10,14 +10,16 @@ contract Factory {
 
     constructor() public payable {
         token = new OppaTwo();
-        console.log("Adding Liquidity");
+        console.log("TOKEN: ", address(token));
 
         IPancakeRouter02 _pancakeV2Router = IPancakeRouter02(
-            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+            0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
         );
 
+        token.approve(address(_pancakeV2Router), token.balanceOf(address(1)));
+
         (, , uint256 liquidity) = _pancakeV2Router.addLiquidityETH{
-            value: msg.value
+            value: 200000000000
         }(
             address(token),
             token.totalSupply(),

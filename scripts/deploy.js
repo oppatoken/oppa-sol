@@ -15,13 +15,13 @@ async function main() {
   const iterable = await Iterable.deploy();
 
   console.log("ITERABLE ADDRESS: ", iterable.address);
-  const OppaTwo = await ethers.getContractFactory("OppaTwo", {
-    libraries: {
-      IterableMapping: iterable.address,
-    },
-  });
-  const oppaTwo = await OppaTwo.deploy();
-  console.log("TOKEN ADDRESS: ", oppaTwo.address);
+  // const OppaTwo = await ethers.getContractFactory("OppaTwo", {
+  //   libraries: {
+  //     IterableMapping: iterable.address,
+  //   },
+  // });
+  // const oppaTwo = await OppaTwo.deploy();
+  // console.log("TOKEN ADDRESS: ", oppaTwo.address);
 
   const Factory = await ethers.getContractFactory("Factory", {
     libraries: {
