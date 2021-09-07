@@ -25,7 +25,7 @@ import "./library/Address.sol";
 
 import "hardhat/console.sol";
 
-contract Oppa is BEP20("Oppa", "OPPA") {
+abstract contract Oppa is BEP20("Oppa", "OPPA") {
     using SafeMath for uint256;
     using Address for address;
 

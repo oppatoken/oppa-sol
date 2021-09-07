@@ -65,7 +65,7 @@ abstract contract BEP20 is Context, IBEP20, Ownable {
     /**
      * @dev Returns the name of the token.
      */
-    function name() public view returns (string memory) {
+    function name() public view override returns (string memory) {
         return _name;
     }
 
@@ -73,7 +73,7 @@ abstract contract BEP20 is Context, IBEP20, Ownable {
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view returns (string memory) {
+    function symbol() public view override returns (string memory) {
         return _symbol;
     }
 
@@ -90,7 +90,7 @@ abstract contract BEP20 is Context, IBEP20, Ownable {
      * no way affects any of the arithmetic of the contract, including
      * {IBEP20-balanceOf} and {IBEP20-transfer}.
      */
-    function decimals() public view returns (uint8) {
+    function decimals() public view override returns (uint8) {
         return _decimals;
     }
 
