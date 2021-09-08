@@ -9,6 +9,8 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.4.1",
     "hardhat": "^2.4.3",
+    "prettier": "^2.3.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.17",
     "web3": "^1.2.11"
   },
   "scripts": {
@@ -16,6 +18,7 @@
     "clean": "npx hardhat clean",
     "chain": "npx hardhat node",
     "test": "npx hardhat test",
+    "lint": "prettier --list-different 'contracts/**/*.sol'",
     "mint": "npx hardhat run scripts/mint.js --network testnet",
     "deploy": "yarn compile && npx hardhat run scripts/deploy.js --network localhost",
     "deploy-testnet": "yarn compile && npx hardhat run scripts/deploy-testnet.js --network testnet",

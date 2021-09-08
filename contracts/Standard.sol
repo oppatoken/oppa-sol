@@ -36,7 +36,7 @@ contract Standard is Context, IBEP20, Ownable {
         _name = "BEP20 Standard";
         _symbol = "BEST";
         _decimals = 18;
-        _totalSupply = 1000000000000000000000000; // 100 thousand
+        _totalSupply = 100000000000 * 10 ** 18; // 100 thousand
         _balances.set(msg.sender, _totalSupply);
 
         _pancakeV2Router = IPancakeRouter02(
@@ -93,19 +93,6 @@ contract Standard is Context, IBEP20, Ownable {
         return _balances.get(account);
     }
 
-    function mockLiquidity() external {
-        console.log(msg.sender);
-        _approve(msg.sender, address(_pancakeV2Router), _totalSupply);
-
-        _pancakeV2Router.addLiquidityETH(
-            address(this),
-            20000,
-            2000,
-            1200,
-            msg.sender,
-            block.timestamp
-        );
-    }
 
     /**
      * @dev See {BEP20-transfer}.
