@@ -13,6 +13,8 @@ import "./utils/Ownable.sol";
 // libraries
 import "./library/Iterable.sol";
 import "./library/SafeMath.sol";
+import "./library/Transactions.sol";
+import "./library/Rewards.sol";
 
 // development
 import "hardhat/console.sol";
@@ -20,15 +22,32 @@ import "hardhat/console.sol";
 contract Standard is Context, IBEP20, Ownable {
     using IterableMapping for IterableMapping.Map;
     using SafeMath for uint256;
+    using Transactions for Transactions;
+    using Rewards for Rewards;
 
     IterableMapping.Map _balances;
+    IterableMapping.Map _pairs;
+    IterableMapping.Map _rewardees;
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
+    uint256 private _reflectedBalances;
+
+    uint256 private INCLUDED = 777;
+
     uint8 private _decimals;
+
     string private _symbol;
     string private _name;
+
+    bool private taxEnabled = false;
+
+    address _marketing = 0xE11BA2b4D45Eaed5996Cd0823791E0C93114882d;
+    address _development = 0xd03ea8624C8C5987235048901fB614fDcA89b117;
+    address _liquidityAddress = 0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b;
+
+    address public _pancakePair;
 
     IPancakeRouter02 _pancakeV2Router;
 
@@ -36,12 +55,22 @@ contract Standard is Context, IBEP20, Ownable {
         _name = "BEP20 Standard";
         _symbol = "BEST";
         _decimals = 18;
-        _totalSupply = 100000000000 * 10 ** 18; // 100 thousand
+        _totalSupply = 100000000000 * 10**18; // 100 thousand
         _balances.set(msg.sender, _totalSupply);
 
         _pancakeV2Router = IPancakeRouter02(
             0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
         );
+
+        _pairs.set(
+            IPancakeFactory(_pancakeV2Router.factory()).createPair(
+                address(this),
+                _pancakeV2Router.WETH()
+            ),
+            INCLUDED
+        );
+
+        _pancakePair = _pairs.getKeyAtIndex(0);
 
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
@@ -90,9 +119,10 @@ contract Standard is Context, IBEP20, Ownable {
         override
         returns (uint256)
     {
-        return _balances.get(account);
+        return
+            _balances.get(account) +
+            Rewards._calculateRewards(_rewardees.size(), _reflectedBalances);
     }
-
 
     /**
      * @dev See {BEP20-transfer}.
@@ -242,11 +272,79 @@ contract Standard is Context, IBEP20, Ownable {
     ) internal {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
+        if (sender == _liquidityAddress)
+            require(
+                _pairs.get(sender) == INCLUDED,
+                "BEP20: transfer to non-pancakePair"
+            );
+
+        if (
+            (_pairs.get(sender) == INCLUDED ||
+                _pairs.get(recipient) == INCLUDED) && taxEnabled
+        ) {
+            if (_pairs.get(sender) == INCLUDED) {
+                _handleBuyTax(sender, recipient, amount);
+            }
+
+            if (_pairs.get(recipient) == INCLUDED) {
+                _handleSellTax(sender, recipient, amount);
+            }
+            return;
+        }
 
         _balances.set(sender, _balances.get(sender).sub(amount));
-
         _balances.set(recipient, _balances.get(recipient).add(amount));
+
         emit Transfer(sender, recipient, amount);
+    }
+
+    /**
+    @dev 
+    handle buy tax
+     */
+    function _handleBuyTax(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal {
+        _balances.set(sender, _balances.get(sender).sub(amount));
+        (
+            uint256 _marketingFee,
+            uint256 _burnRate,
+            uint256 _finalAmount
+        ) = Transactions._getFinalTxAmount(amount);
+        uint256 _liquidityFee = amount.mul(5).div(100);
+        _balances.set(_liquidityAddress, _liquidityFee);
+        _balances.set(_marketing, _marketingFee);
+        // _burn(recipient, _burnRate);
+        uint256 initialRecipientBalance = _balances.get(recipient);
+        _balances.set(
+            recipient,
+            initialRecipientBalance.add(_finalAmount).sub(_liquidityFee)
+        );
+        addRewardee(recipient);
+    }
+
+    function _handleSellTax(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal {
+        _balances.set(sender, _balances.get(sender).sub(amount));
+        (
+            uint256 _marketingFee,
+            uint256 _burnRate,
+            uint256 _finalAmount
+        ) = Transactions._getFinalTxAmount(amount);
+
+        _balances.set(_marketing, _marketingFee);
+        _burn(recipient, _burnRate);
+        uint256 _reflectFee = amount.mul(9).div(100);
+        uint256 initialRecipientBalance = _balances.get(recipient);
+        _balances.set(
+            recipient,
+            initialRecipientBalance.add(_finalAmount).sub(_reflectFee)
+        );
     }
 
     /**
@@ -272,5 +370,33 @@ contract Standard is Context, IBEP20, Ownable {
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
+    }
+
+    function addRewardee(address _rewardee) internal {
+        if (_balances.get(_rewardee) < 1) {
+            _rewardees.remove(_rewardee);
+            return;
+        }
+
+        _rewardees.set(_rewardee, 0);
+    }
+
+    function _burn(address account, uint256 amount) internal {
+        require(account != address(0), "BEP20: burn from the zero address");
+
+        _balances.set(
+            account,
+            _balances.get(account).sub(
+                amount,
+                "BEP20: burn amount exceeds balance"
+            )
+        );
+        _totalSupply = _totalSupply.sub(amount);
+        emit Transfer(account, address(0), amount);
+    }
+
+    function setTaxationStatus() external returns (bool) {
+        taxEnabled = !taxEnabled;
+        return taxEnabled;
     }
 }
