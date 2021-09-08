@@ -3,6 +3,8 @@ pragma solidity 0.6.12;
 
 // interfaces
 import "./interface/IBEP20.sol";
+import "./interface/IPancakeRouter02.sol";
+import "./interface/IPancakeFactory.sol";
 
 // utilities
 import "./utils/Context.sol";
@@ -11,6 +13,9 @@ import "./utils/Ownable.sol";
 // libraries
 import "./library/Iterable.sol";
 import "./library/SafeMath.sol";
+
+// development
+import "hardhat/console.sol";
 
 contract Standard is Context, IBEP20, Ownable {
     using IterableMapping for IterableMapping.Map;
@@ -25,12 +30,18 @@ contract Standard is Context, IBEP20, Ownable {
     string private _symbol;
     string private _name;
 
+    IPancakeRouter02 _pancakeV2Router;
+
     constructor() public {
         _name = "BEP20 Standard";
         _symbol = "BEST";
-        _decimals = 8;
-        _totalSupply = 10000000000000; // 100 thousand
+        _decimals = 18;
+        _totalSupply = 1000000000000000000000000; // 100 thousand
         _balances.set(msg.sender, _totalSupply);
+
+        _pancakeV2Router = IPancakeRouter02(
+            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+        );
 
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
@@ -80,6 +91,20 @@ contract Standard is Context, IBEP20, Ownable {
         returns (uint256)
     {
         return _balances.get(account);
+    }
+
+    function mockLiquidity() external {
+        console.log(msg.sender);
+        _approve(msg.sender, address(_pancakeV2Router), _totalSupply);
+
+        _pancakeV2Router.addLiquidityETH(
+            address(this),
+            20000,
+            2000,
+            1200,
+            msg.sender,
+            block.timestamp
+        );
     }
 
     /**
