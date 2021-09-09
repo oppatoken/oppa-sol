@@ -19,7 +19,7 @@ import "./library/Rewards.sol";
 // development
 import "hardhat/console.sol";
 
-contract Standard is Context, IBEP20, Ownable {
+contract Dara is Context, IBEP20, Ownable {
     using IterableMapping for IterableMapping.Map;
     using SafeMath for uint256;
     using Transactions for Transactions;
@@ -52,8 +52,8 @@ contract Standard is Context, IBEP20, Ownable {
     IPancakeRouter02 _pancakeV2Router;
 
     constructor() public {
-        _name = "BEP20 Standard";
-        _symbol = "BEST";
+        _name = "Sandara Park";
+        _symbol = "DARA";
         _decimals = 18;
         _totalSupply = 100000000000 * 10**18; // 100 thousand
         _balances.set(msg.sender, _totalSupply);
