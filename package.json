@@ -21,10 +21,10 @@
     "lint": "prettier --list-different 'contracts/**/*.sol'",
     "mint": "npx hardhat run scripts/mint.js --network testnet",
     "deploy": "yarn compile && npx hardhat run scripts/deploy.js --network localhost",
+    "factory": "yarn compile && npx hardhat run scripts/factory.js --network localhost",
     "deploy-testnet": "yarn compile && npx hardhat run scripts/deploy-testnet.js --network testnet",
     "deploy-iterable": "yarn compile && npx hardhat run scripts/deploy-iterable.js --network localhost",
     "deploy-testnet-iterable": "yarn compile && npx hardhat run scripts/deploy-iterable.js --network testnet",
-    "factory": "npx hardhat factory",
     "fork": "npx hardhat node --fork https://data-seed-prebsc-2-s1.binance.org:8545",
     "burn": "npx hardhat burn"
   },
