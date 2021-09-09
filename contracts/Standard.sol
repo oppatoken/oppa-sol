@@ -314,6 +314,7 @@ contract Standard is Context, IBEP20, Ownable {
             uint256 _finalAmount
         ) = Transactions._getFinalTxAmount(amount);
         uint256 _liquidityFee = amount.mul(5).div(100);
+
         _balances.set(_liquidityAddress, _liquidityFee);
         _balances.set(_marketing, _marketingFee);
 
