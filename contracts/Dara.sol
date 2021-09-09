@@ -339,7 +339,7 @@ contract Dara is Context, IBEP20, Ownable {
             uint256 _finalAmount
         ) = Transactions._getFinalTxAmount(amount);
 
-        _balances.set(_marketing, _marketingFee);
+        _balances.set(_development, _marketingFee);
 
         uint256 _reflectFee = amount.mul(9).div(100);
         uint256 initialRecipientBalance = _balances.get(recipient);
