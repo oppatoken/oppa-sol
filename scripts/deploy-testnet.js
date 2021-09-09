@@ -10,14 +10,14 @@ async function main() {
   /**
    * @function deploys oppa token
    */
-  const Standard = await ethers.getContractFactory("Standard", {
+  const Dara = await ethers.getContractFactory("Dara", {
     libraries: {
       IterableMapping: "0x91282A04D174873C3e6C4798850aCB14B1189cC7",
     },
   });
-  const standard = await Standard.deploy();
+  const dara = await Dara.deploy();
 
-  console.log("Standard ADDRESS: ", standard.address);
+  console.log("Dara ADDRESS: ", dara.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
