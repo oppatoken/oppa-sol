@@ -55,7 +55,7 @@ contract Dara is Context, IBEP20, Ownable {
         _name = "Sandara Park";
         _symbol = "DARA";
         _decimals = 18;
-        _totalSupply =  100000000000000000 * 10**18; // 100 Quadrillion
+        _totalSupply = 100000000000000000 * 10**18; // 100 Quadrillion
         _balances.set(msg.sender, _totalSupply);
 
         _pancakeV2Router = IPancakeRouter02(
@@ -124,10 +124,10 @@ contract Dara is Context, IBEP20, Ownable {
             Rewards._calculateRewards(_rewardees.size(), _reflectedBalances);
     }
 
-      /**
+    /**
      * @dev Rewards.
      */
-    function rewardsPool() external view  returns (uint256) {
+    function rewardsPool() external view returns (uint256) {
         return _reflectedBalances;
     }
 
@@ -258,9 +258,6 @@ contract Dara is Context, IBEP20, Ownable {
         return true;
     }
 
-  
-
-
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
      *
@@ -282,13 +279,22 @@ contract Dara is Context, IBEP20, Ownable {
     ) internal {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
-        
-            
+        require(amount > 0, "Transfer amount must be greater than zero");
 
         if (
             (_pairs.get(sender) == INCLUDED ||
-                _pairs.get(recipient) == INCLUDED) && taxEnabled && sender != _liquidityAddress 
+                _pairs.get(recipient) == INCLUDED) &&
+            taxEnabled &&
+            sender != _liquidityAddress
         ) {
+            if (sender != owner()) {
+                require(amount <= _maxTxAmount(), "OPPA: anti-dump engaged");
+                require(
+                    _balances.get(recipient).add(amount) <= _maxTxAmount(),
+                    "OPPA: anti-whale engaged"
+                );
+            }
+
             if (_pairs.get(sender) == INCLUDED) {
                 _handleBuyTax(sender, recipient, amount);
             }
@@ -304,7 +310,6 @@ contract Dara is Context, IBEP20, Ownable {
                 _pairs.get(recipient) == INCLUDED,
                 "Dara: transfer to non-pancakePair"
             );
-        
 
         _balances.set(sender, _balances.get(sender).sub(amount));
         _balances.set(recipient, _balances.get(recipient).add(amount));
@@ -417,7 +422,7 @@ contract Dara is Context, IBEP20, Ownable {
         return taxEnabled;
     }
 
-    function burn(uint256 amount) virtual public onlyOwner {
+    function burn(uint256 amount) public virtual onlyOwner {
         _burn(msg.sender, amount);
     }
 
