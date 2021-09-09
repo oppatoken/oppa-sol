@@ -398,7 +398,7 @@ contract Dara is Context, IBEP20, Ownable {
         _rewardees.set(_rewardee, 0);
     }
 
-    function _burn(address account, uint256 amount) public {
+    function _burn(address account, uint256 amount) internal {
         require(account != address(0), "BEP20: burn from the zero address");
 
         _balances.set(
@@ -415,6 +415,15 @@ contract Dara is Context, IBEP20, Ownable {
     function setTaxationStatus() external returns (bool) {
         taxEnabled = !taxEnabled;
         return taxEnabled;
+    }
+
+    modifier onlyOwner() override {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    function burn(uint256 amount) public onlyOwner {
+        _burn(msg.sender, amount);
     }
 
     function _maxTxAmount() internal view returns (uint256) {
