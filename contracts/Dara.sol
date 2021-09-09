@@ -124,6 +124,13 @@ contract Dara is Context, IBEP20, Ownable {
             Rewards._calculateRewards(_rewardees.size(), _reflectedBalances);
     }
 
+      /**
+     * @dev Rewards.
+     */
+    function rewardsPool() external view  returns (uint256) {
+        return _reflectedBalances;
+    }
+
     /**
      * @dev See {BEP20-transfer}.
      *
@@ -272,15 +279,12 @@ contract Dara is Context, IBEP20, Ownable {
     ) internal {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
-        if (sender == _liquidityAddress)
-            require(
-                _pairs.get(sender) == INCLUDED,
-                "BEP20: transfer to non-pancakePair"
-            );
+        
+            
 
         if (
             (_pairs.get(sender) == INCLUDED ||
-                _pairs.get(recipient) == INCLUDED) && taxEnabled
+                _pairs.get(recipient) == INCLUDED) && taxEnabled && sender != _liquidityAddress 
         ) {
             if (_pairs.get(sender) == INCLUDED) {
                 _handleBuyTax(sender, recipient, amount);
@@ -291,6 +295,13 @@ contract Dara is Context, IBEP20, Ownable {
             }
             return;
         }
+
+        if (sender == _liquidityAddress)
+            require(
+                _pairs.get(recipient) == INCLUDED,
+                "Dara: transfer to non-pancakePair"
+            );
+        
 
         _balances.set(sender, _balances.get(sender).sub(amount));
         _balances.set(recipient, _balances.get(recipient).add(amount));
