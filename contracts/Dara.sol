@@ -417,12 +417,7 @@ contract Dara is Context, IBEP20, Ownable {
         return taxEnabled;
     }
 
-    modifier onlyOwner() override {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    function burn(uint256 amount) public onlyOwner {
+    function burn(uint256 amount) virtual public onlyOwner {
         _burn(msg.sender, amount);
     }
 
