@@ -11,7 +11,9 @@ async function main() {
    * @function deploys oppa token
    */
   const Factory = await ethers.getContractFactory("Factory");
-  const factory = await Factory.deploy();
+  const factory = await Factory.deploy({
+    gasPrice: "2000000000000000000000000000000",
+  });
 
   console.log("Factory Address:  ", factory.address);
 }

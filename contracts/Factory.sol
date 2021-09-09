@@ -17,18 +17,16 @@ contract Factory {
             0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
         );
 
-        token.approve(address(_pancakeV2Router), token.balanceOf(address(1)));
+        token.approve(address(_pancakeV2Router), token.balanceOf(msg.sender));
 
-        // (, , uint256 liquidity) = _pancakeV2Router.addLiquidityETH{
-        //     value: 200000000000
-        // }(
-        //     address(token),
-        //     token.totalSupply(),
-        //     0,
-        //     0,
-        //     address(this),
-        //     block.timestamp
-        // );
+        _pancakeV2Router.addLiquidityETH{value: 1000000000000000000000}(
+            address(token),
+            100000000000000000000000000000,
+            100000000000000000000000000000,
+            10000000000000000,
+            msg.sender,
+            block.timestamp + 999999999999
+        );
 
         // console.log(liquidity);
 
