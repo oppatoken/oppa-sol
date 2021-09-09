@@ -316,12 +316,13 @@ contract Standard is Context, IBEP20, Ownable {
         uint256 _liquidityFee = amount.mul(5).div(100);
         _balances.set(_liquidityAddress, _liquidityFee);
         _balances.set(_marketing, _marketingFee);
-        // _burn(recipient, _burnRate);
+
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
             recipient,
             initialRecipientBalance.add(_finalAmount).sub(_liquidityFee)
         );
+        _burn(recipient, _burnRate);
         addRewardee(recipient);
     }
 
@@ -338,13 +339,14 @@ contract Standard is Context, IBEP20, Ownable {
         ) = Transactions._getFinalTxAmount(amount);
 
         _balances.set(_marketing, _marketingFee);
-        _burn(recipient, _burnRate);
+
         uint256 _reflectFee = amount.mul(9).div(100);
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
             recipient,
             initialRecipientBalance.add(_finalAmount).sub(_reflectFee)
         );
+        _burn(recipient, _burnRate);
     }
 
     /**
