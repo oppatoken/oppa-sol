@@ -55,7 +55,7 @@ contract Dara is Context, IBEP20, Ownable {
         _name = "Sandara Park";
         _symbol = "DARA";
         _decimals = 18;
-        _totalSupply = 100000000000 * 10**18; // 100 thousand
+        _totalSupply =  100000000000000000 * 10**18; // 100 Quadrillion
         _balances.set(msg.sender, _totalSupply);
 
         _pancakeV2Router = IPancakeRouter02(
@@ -258,6 +258,9 @@ contract Dara is Context, IBEP20, Ownable {
         return true;
     }
 
+  
+
+
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
      *
@@ -395,7 +398,7 @@ contract Dara is Context, IBEP20, Ownable {
         _rewardees.set(_rewardee, 0);
     }
 
-    function _burn(address account, uint256 amount) internal {
+    function _burn(address account, uint256 amount) public {
         require(account != address(0), "BEP20: burn from the zero address");
 
         _balances.set(
@@ -412,5 +415,9 @@ contract Dara is Context, IBEP20, Ownable {
     function setTaxationStatus() external returns (bool) {
         taxEnabled = !taxEnabled;
         return taxEnabled;
+    }
+
+    function _maxTxAmount() internal view returns (uint256) {
+        return _totalSupply.mul(2).div(100);
     }
 }
