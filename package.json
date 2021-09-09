@@ -26,7 +26,8 @@
     "deploy-iterable": "yarn compile && npx hardhat run scripts/deploy-iterable.js --network localhost",
     "deploy-testnet-iterable": "yarn compile && npx hardhat run scripts/deploy-iterable.js --network testnet",
     "fork": "npx hardhat node --fork https://data-seed-prebsc-2-s1.binance.org:8545",
-    "burn": "npx hardhat burn"
+    "burn": "npx hardhat burn",
+    "liquidity": "npx hardhat add"
   },
   "dependencies": {
     "@nomiclabs/hardhat-etherscan": "^2.1.4",
