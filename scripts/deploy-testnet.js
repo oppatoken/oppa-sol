@@ -11,7 +11,7 @@ async function main() {
   /**
    * @function deploys oppa token
    */
-  const Dara = await ethers.getContractFactory("HanTeeSul", {
+  const Dara = await ethers.getContractFactory("Apol", {
     libraries: {
       IterableMapping: "0x71784F9F113ADC6B19F84fcE6035ebA2FbD4d4B4",
     },
