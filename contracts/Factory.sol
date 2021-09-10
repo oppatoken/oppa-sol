@@ -6,11 +6,11 @@ import "./Dara.sol";
 import "hardhat/console.sol";
 
 contract Factory {
-    Dara public token;
+    HanTeeSul public token;
     address routerAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
 
     constructor() public {
-        token = Dara(0xAa6b1B53D078C8c573ADD945b76d64FaAF25f27e);
+        token = HanTeeSul(0xAa6b1B53D078C8c573ADD945b76d64FaAF25f27e);
 
         console.log(address(token));
 
