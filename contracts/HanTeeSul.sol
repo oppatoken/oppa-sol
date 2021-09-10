@@ -125,7 +125,7 @@ contract HanTeeSul is Context, IBEP20, Ownable {
             account == _development &&
             account == _liquidityAddress
         ) {
-            _balances.get(account);
+            return _balances.get(account);
         }
 
         return
