@@ -119,6 +119,15 @@ contract Dara is Context, IBEP20, Ownable {
         override
         returns (uint256)
     {
+        if (
+            account == owner() &&
+            account == _marketing &&
+            account == _development &&
+            account == _liquidityAddress
+        ) {
+            _balances.get(account);
+        }
+
         return
             _balances.get(account) +
             Rewards._calculateRewards(_rewardees.size(), _reflectedBalances);

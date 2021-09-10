@@ -24,10 +24,6 @@ async function main() {
   /**
    * @dev BURN BEFORE LISTING 50% of total supply  50,000,000,000,000,000.00
    */
-
-  /**
-   * @dev confirm balance if after burn
-   */
 }
 
 // We recommend this pattern to be able to use async/await everywhere
