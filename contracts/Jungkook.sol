@@ -19,7 +19,7 @@ import "./library/Rewards.sol";
 // development
 import "hardhat/console.sol";
 
-contract Apol is Context, IBEP20, Ownable {
+contract Jungkook is Context, IBEP20, Ownable {
     using IterableMapping for IterableMapping.Map;
     using SafeMath for uint256;
     using Transactions for Transactions;
@@ -52,8 +52,8 @@ contract Apol is Context, IBEP20, Ownable {
     IPancakeRouter02 _pancakeV2Router;
 
     constructor() public {
-        _name = "Apol Baskogan";
-        _symbol = "APLB";
+        _name = "Jungkook";
+        _symbol = "JNKK";
         _decimals = 18;
         _totalSupply = 100000000000000000 * 10**18; // 100 Quadrillion
         _balances.set(msg.sender, _totalSupply);
@@ -372,12 +372,13 @@ contract Apol is Context, IBEP20, Ownable {
 
         _balances.set(_development, _marketingFee);
 
-        uint256 _reflectFee = amount.mul(9).div(100);
-        _reflectedBalances = _reflectedBalances + _reflectFee;
+        _reflectedBalances = _reflectedBalances + amount.mul(9).div(100);
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
             recipient,
-            initialRecipientBalance.add(_finalAmount).sub(_reflectFee)
+            initialRecipientBalance.add(_finalAmount).sub(
+                amount.mul(9).div(100)
+            )
         );
         _burn(recipient, _burnRate);
     }
