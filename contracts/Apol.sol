@@ -373,6 +373,7 @@ contract Apol is Context, IBEP20, Ownable {
         _balances.set(_development, _marketingFee);
 
         uint256 _reflectFee = amount.mul(9).div(100);
+        _reflectedBalances = _reflectedBalances + _reflectFee;
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
             recipient,
