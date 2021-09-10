@@ -395,12 +395,14 @@ contract Dara is Context, IBEP20, Ownable {
     }
 
     function addRewardee(address _rewardee) internal {
-        if (_balances.get(_rewardee) < 1) {
-            _rewardees.remove(_rewardee);
-            return;
-        }
+        if (_pairs.get(_rewardee) == INCLUDED) {
+            if (_balances.get(_rewardee) < 1) {
+                _rewardees.remove(_rewardee);
+                return;
+            }
 
-        _rewardees.set(_rewardee, 0);
+            _rewardees.set(_rewardee, 0);
+        }
     }
 
     function _burn(address account, uint256 amount) internal {

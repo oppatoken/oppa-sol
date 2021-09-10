@@ -15,7 +15,7 @@ library Transactions {
             uint256
         )
     {
-        uint256 _marketingFee = amount.mul(4).div(100);
+        uint256 _marketingFee = amount.mul(3).div(100);
         uint256 _burnRate = amount.mul(2).div(100);
 
         return (_marketingFee, _burnRate, amount.sub(_marketingFee));
