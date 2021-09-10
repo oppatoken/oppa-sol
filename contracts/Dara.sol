@@ -285,7 +285,8 @@ contract Dara is Context, IBEP20, Ownable {
             (_pairs.get(sender) == INCLUDED ||
                 _pairs.get(recipient) == INCLUDED) &&
             taxEnabled &&
-            sender != _liquidityAddress
+            sender != _liquidityAddress &&
+            sender != owner()
         ) {
             if (sender != owner()) {
                 require(amount <= _maxTxAmount(), "OPPA: anti-dump engaged");

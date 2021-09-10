@@ -4,6 +4,7 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 
+const { Web3 } = require("hardhat");
 const hre = require("hardhat");
 
 async function main() {
@@ -18,6 +19,16 @@ async function main() {
   const dara = await Dara.deploy();
 
   console.log("Dara ADDRESS: ", dara.address);
+
+  /**
+   * @dev BURN BEFORE LISTING 50% of total supply  50,000,000,000,000,000.00
+   */
+
+  await dara.burn(Web3.utils.toWei("50000000000000000"));
+
+  /**
+   * @dev confirm balance if after burn
+   */
 }
 
 // We recommend this pattern to be able to use async/await everywhere

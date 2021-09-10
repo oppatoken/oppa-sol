@@ -35,6 +35,15 @@ module.exports = {
         mnemonic: `${process.env.MNEMONIC}`,
       },
     },
+    mainnet: {
+      url: `${process.env.MAINNET_URL}`,
+      chainId: 56,
+      gas: 21000000000,
+      gasPrice: 21000000000,
+      accounts: {
+        mnemonic: `${process.env.MNEMONIC}`,
+      },
+    },
   },
   etherscan: {
     apiKey: `${process.env.ETHERSCAN_API_KEY}`,
