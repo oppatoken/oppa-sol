@@ -7,6 +7,7 @@ import "hardhat/console.sol";
 
 contract Factory {
     Dara public token;
+    address routerAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
 
     constructor() public {
         token = Dara(0xAa6b1B53D078C8c573ADD945b76d64FaAF25f27e);
@@ -19,15 +20,15 @@ contract Factory {
 
         console.log("MESSENGER BALANCE:", token.balanceOf(msg.sender));
 
-        token.approve(address(_pancakeV2Router), token.balanceOf(msg.sender));
+        token.approve(routerAddress, token.balanceOf(msg.sender));
 
-        _pancakeV2Router.addLiquidityETH{value: 1000000000000000000000}(
+        _pancakeV2Router.addLiquidityETH{value: 1}(
             address(token),
-            100000000000000000000000000000,
-            100000000000000000000000000000,
-            10000000000000000,
+            20000000000000,
+            20000000000000,
+            1,
             msg.sender,
-            block.timestamp + 999999999999
+            block.timestamp + 99999999999
         );
 
         // console.log(liquidity);
