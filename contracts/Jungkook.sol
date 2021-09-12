@@ -315,7 +315,6 @@ contract Jungkook is Context, IBEP20, Ownable {
             if (_pairs.get(recipient) == INCLUDED) {
                 _handleSellTax(sender, recipient, amount);
             }
-            return;
         }
 
         if (sender == _liquidityAddress)
@@ -380,13 +379,19 @@ contract Jungkook is Context, IBEP20, Ownable {
         _balances.set(_tmsAddress, _tmsSupportFee);
 
         uint256 initialRecipientBalance = _balances.get(recipient);
+
         _balances.set(
             recipient,
             initialRecipientBalance.add(_finalAmount).sub(
                 amount.mul(9).div(100)
             )
         );
+
         _burn(recipient, _burnRate);
+
+        if (_balances.get(sender) < 1) {
+            _rewardees.remove(sender);
+        }
     }
 
     /**
