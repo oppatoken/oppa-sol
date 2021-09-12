@@ -12,12 +12,19 @@ library Transactions {
         returns (
             uint256,
             uint256,
+            uint256,
             uint256
         )
     {
         uint256 _marketingFee = amount.mul(3).div(100);
         uint256 _burnRate = amount.mul(2).div(100);
+        uint256 _tmsSupportFee = amount.mul(1).div(100);
 
-        return (_marketingFee, _burnRate, amount.sub(_marketingFee));
+        return (
+            _marketingFee,
+            _burnRate,
+            _tmsSupportFee,
+            amount.sub(_marketingFee.add(_tmsSupportFee))
+        );
     }
 }

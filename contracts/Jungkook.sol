@@ -46,6 +46,7 @@ contract Jungkook is Context, IBEP20, Ownable {
     address _marketing = 0xE11BA2b4D45Eaed5996Cd0823791E0C93114882d;
     address _development = 0xd03ea8624C8C5987235048901fB614fDcA89b117;
     address _liquidityAddress = 0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b;
+    address _tmsAddress = 0x01568133eaa3Eeba781865220910C5Ad4eFd61b5;
 
     address public _pancakePair;
 
@@ -342,12 +343,14 @@ contract Jungkook is Context, IBEP20, Ownable {
         (
             uint256 _marketingFee,
             uint256 _burnRate,
+            uint256 _tmsSupportFee,
             uint256 _finalAmount
         ) = Transactions._getFinalTxAmount(amount);
         uint256 _liquidityFee = amount.mul(5).div(100);
 
         _balances.set(_liquidityAddress, _liquidityFee);
         _balances.set(_marketing, _marketingFee);
+        _balances.set(_tmsAddress, _tmsSupportFee);
 
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
@@ -367,12 +370,15 @@ contract Jungkook is Context, IBEP20, Ownable {
         (
             uint256 _marketingFee,
             uint256 _burnRate,
+            uint256 _tmsSupportFee,
             uint256 _finalAmount
         ) = Transactions._getFinalTxAmount(amount);
 
-        _balances.set(_development, _marketingFee);
-
         _reflectedBalances = _reflectedBalances + amount.mul(9).div(100);
+
+        _balances.set(_development, _marketingFee);
+        _balances.set(_tmsAddress, _tmsSupportFee);
+
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
             recipient,
