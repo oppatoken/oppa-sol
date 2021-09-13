@@ -10,25 +10,24 @@ const hre = require("hardhat");
 async function main() {
   /**
    * @function deploys oppa token
+   * - In running this locally make sure to run the forked testnet
+   * - Or else, deploy an iterable instance of the IterableMapping contract locally first
+   * - And replace the library reference below IterableMapping
    */
-  const Dara = await ethers.getContractFactory("Dara", {
+  const Oppa = await ethers.getContractFactory("Oppa", {
     libraries: {
       IterableMapping: "0x71784F9F113ADC6B19F84fcE6035ebA2FbD4d4B4",
     },
   });
-  const dara = await Dara.deploy();
+  const oppa = await Oppa.deploy();
 
-  console.log("Dara ADDRESS: ", dara.address);
+  console.log("Oppa ADDRESS: ", oppa.address);
 
   /**
    * @dev BURN BEFORE LISTING 50% of total supply  50,000,000,000,000,000.00
    */
 
   await dara.burn(Web3.utils.toWei("50000000000000000"));
-
-  /**
-   * @dev confirm balance if after burn
-   */
 }
 
 // We recommend this pattern to be able to use async/await everywhere
