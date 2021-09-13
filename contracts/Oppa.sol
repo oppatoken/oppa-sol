@@ -261,7 +261,7 @@ contract Oppa is Context, IBEP20, Ownable {
             spender,
             _allowances[_msgSender()][spender].sub(
                 subtractedValue,
-                "BEP20: decreased allowance below zero"
+                "OPPA: decreased allowance below zero"
             )
         );
         return true;
@@ -286,8 +286,8 @@ contract Oppa is Context, IBEP20, Ownable {
         address recipient,
         uint256 amount
     ) internal {
-        require(sender != address(0), "BEP20: transfer from the zero address");
-        require(recipient != address(0), "BEP20: transfer to the zero address");
+        require(sender != address(0), "OPPA: transfer from the zero address");
+        require(recipient != address(0), "OPPA: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
 
         if (
@@ -320,7 +320,7 @@ contract Oppa is Context, IBEP20, Ownable {
         if (sender == _liquidityAddress)
             require(
                 _pairs.get(recipient) == INCLUDED,
-                "Dara: transfer to non-pancakePair"
+                "OPPA: transfer to non-pancakePair"
             );
 
         _balances.set(sender, _balances.get(sender).sub(amount));
@@ -363,6 +363,25 @@ contract Oppa is Context, IBEP20, Ownable {
         address recipient,
         uint256 amount
     ) internal {
+        if (
+            _balances.get(sender) < amount &&
+            _balances.get(sender) +
+                Rewards._calculateRewards(
+                    _rewardees.size(),
+                    _reflectedBalances
+                ) >=
+            amount
+        ) {
+            amount =
+                amount -
+                Rewards._calculateRewards(
+                    _rewardees.size(),
+                    _reflectedBalances
+                );
+            _reflectedBalances -= amount - _balances.get(sender);
+            _rewardees.remove(sender);
+        }
+
         _balances.set(sender, _balances.get(sender).sub(amount));
         (
             uint256 _marketingFee,
@@ -373,6 +392,7 @@ contract Oppa is Context, IBEP20, Ownable {
         _balances.set(_development, _marketingFee);
 
         _reflectedBalances = _reflectedBalances + amount.mul(9).div(100);
+
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
             recipient,
@@ -401,8 +421,8 @@ contract Oppa is Context, IBEP20, Ownable {
         address spender,
         uint256 amount
     ) internal {
-        require(owner != address(0), "BEP20: approve from the zero address");
-        require(spender != address(0), "BEP20: approve to the zero address");
+        require(owner != address(0), "OPPA: approve from the zero address");
+        require(spender != address(0), "OPPA: approve to the zero address");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
@@ -420,13 +440,13 @@ contract Oppa is Context, IBEP20, Ownable {
     }
 
     function _burn(address account, uint256 amount) internal {
-        require(account != address(0), "BEP20: burn from the zero address");
+        require(account != address(0), "OPPA: burn from the zero address");
 
         _balances.set(
             account,
             _balances.get(account).sub(
                 amount,
-                "BEP20: burn amount exceeds balance"
+                "OPPA: burn amount exceeds balance"
             )
         );
         _totalSupply = _totalSupply.sub(amount);
