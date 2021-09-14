@@ -43,9 +43,9 @@ contract Oppa is Context, IBEP20, Ownable {
 
     bool private taxEnabled = false;
 
-    address _marketing = 0xE11BA2b4D45Eaed5996Cd0823791E0C93114882d;
-    address _development = 0xd03ea8624C8C5987235048901fB614fDcA89b117;
-    address _liquidityAddress = 0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b;
+    address _marketing = 0x9F02531855Ed66a5a881E7f84A7679A1172451DE;
+    address _development = 0x19bF6D7243396D2ee4B8aF58Ae27d84910e57edC;
+    address _liquidityAddress = 0x1cF2e7C18A1c9E817777e662b8dB0a05E31f4076;
 
     address public _pancakePair;
 
@@ -59,7 +59,7 @@ contract Oppa is Context, IBEP20, Ownable {
         _balances.set(msg.sender, _totalSupply);
 
         _pancakeV2Router = IPancakeRouter02(
-            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+            0x10ED43C718714eb63d5aA57B78B54704E256024E
         );
 
         _pairs.set(
