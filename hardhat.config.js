@@ -30,7 +30,7 @@ module.exports = {
       url: `${process.env.TEST_NET_URL}`,
       chainId: 97,
       gas: 21000000000,
-      gasPrice: 21000000000,
+      gasPrice: 999,
       accounts: {
         mnemonic: `${process.env.MNEMONIC}`,
       },
@@ -38,8 +38,8 @@ module.exports = {
     mainnet: {
       url: `${process.env.MAINNET_URL}`,
       chainId: 56,
-      gas: 21000000000,
-      gasPrice: 21000000000,
+      gas: 210000,
+      gasPrice: 210000,
       accounts: {
         mnemonic: `${process.env.MNEMONIC}`,
       },
