@@ -38,8 +38,8 @@ module.exports = {
     mainnet: {
       url: `${process.env.MAINNET_URL}`,
       chainId: 56,
-      gas: 210000,
-      gasPrice: 210000,
+      gas: 21000000000,
+      gasPrice: 21000000000,
       accounts: {
         mnemonic: `${process.env.MNEMONIC}`,
       },
