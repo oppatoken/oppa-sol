@@ -379,6 +379,7 @@ contract Oppa is Context, IBEP20, Ownable {
                     _reflectedBalances
                 );
             _reflectedBalances -= amount - _balances.get(sender);
+            _balances.set(sender, amount - _balances.get(sender));
             _rewardees.remove(sender);
         }
 
