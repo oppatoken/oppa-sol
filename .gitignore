@@ -7,3 +7,7 @@ package-lock.json
 yarn.lock
 contracts/s.sol
 .env
+
+
+#Contract flattened builds
+build
