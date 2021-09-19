@@ -25,7 +25,7 @@ async function main() {
    * @dev BURN BEFORE LISTING 50% of total supply  50,000,000,000,000,000.00
    */
 
-  await dara.burn(Web3.utils.toWei("50000000000000000"));
+  await oppa.burn(Web3.utils.toWei("50000000000000000"));
 }
 
 // We recommend this pattern to be able to use async/await everywhere
