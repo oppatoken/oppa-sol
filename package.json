@@ -28,6 +28,7 @@
     "deploy-testnet-iterable": "yarn compile && npx hardhat run scripts/deploy-iterable.js --network testnet",
     "deploy-mainnet-iterable": "yarn compile && npx hardhat run scripts/deploy-iterable.js --network mainnet",
     "fork": "npx hardhat node --fork https://data-seed-prebsc-2-s1.binance.org:8545",
+    "fork-main": "npx hardhat node --fork https://bsc-dataseed.binance.org/",
     "burn": "npx hardhat burn",
     "liquidity": "npx hardhat add",
     "flatten": "npx hardhat flatten"
