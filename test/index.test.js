@@ -1,4 +1,6 @@
 const { expect } = require("chai");
+const getDeployer = require("./utils/accounts");
+const toEther = require("./utils/toEther");
 
 describe("Oppa Token", function () {
   let OppaToken;
@@ -22,7 +24,23 @@ describe("Oppa Token", function () {
     expect(await oppaDeployed.balanceOf(owner.address)).to.equal(
       await oppaDeployed.totalSupply()
     );
+
+    console.log(toEther(await (await oppaDeployed.totalSupply()).toString()));
   });
 
-  // @TODO: test rewards
+  it("Owner balance should be token supply after burning", async function () {
+    expect(await oppaDeployed.balanceOf(owner.address)).to.equal(
+      await oppaDeployed.totalSupply()
+    );
+
+    await oppaDeployed.burn(
+      `${await (await oppaDeployed.totalSupply()).div(2)}`
+    );
+
+    expect(await oppaDeployed.balanceOf(owner.address)).to.equal(
+      await oppaDeployed.totalSupply()
+    );
+
+    console.log(toEther(await (await oppaDeployed.totalSupply()).toString()));
+  });
 });
