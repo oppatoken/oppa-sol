@@ -49,10 +49,12 @@ contract Oppa is Context, IBEP20, Ownable {
 
     address public _pancakePair;
 
+    event AddedRewarde(address indexed rewardee);
+
     IPancakeRouter02 _pancakeV2Router;
 
     constructor() public {
-        _name = "Oppa";
+        _name = "Oppa Token";
         _symbol = "OPPA";
         _decimals = 18;
         _totalSupply = 100000000000000000 * 10**18; // 100 Quadrillion
@@ -119,18 +121,16 @@ contract Oppa is Context, IBEP20, Ownable {
         override
         returns (uint256)
     {
-        if (
-            account == owner() &&
-            account == _marketing &&
-            account == _development &&
-            account == _liquidityAddress
-        ) {
-            return _balances.get(account);
+        if (_rewardees.get(account) == INCLUDED) {
+            return
+                _balances.get(account) +
+                Rewards._calculateRewards(
+                    _rewardees.size(),
+                    _reflectedBalances
+                );
         }
 
-        return
-            _balances.get(account) +
-            Rewards._calculateRewards(_rewardees.size(), _reflectedBalances);
+        return _balances.get(account);
     }
 
     /**
@@ -355,7 +355,9 @@ contract Oppa is Context, IBEP20, Ownable {
             initialRecipientBalance.add(_finalAmount).sub(_liquidityFee)
         );
         _burn(recipient, _burnRate);
-        addRewardee(recipient);
+        if (_rewardees.get(recipient) != INCLUDED) {
+            _rewardees.set(recipient, INCLUDED);
+        }
     }
 
     function _handleSellTax(
@@ -392,7 +394,7 @@ contract Oppa is Context, IBEP20, Ownable {
 
         _balances.set(_development, _marketingFee);
 
-        _reflectedBalances = _reflectedBalances + amount.mul(9).div(100);
+        _reflectedBalances += amount.mul(9).div(100);
 
         uint256 initialRecipientBalance = _balances.get(recipient);
         _balances.set(
@@ -429,20 +431,8 @@ contract Oppa is Context, IBEP20, Ownable {
         emit Approval(owner, spender, amount);
     }
 
-    function addRewardee(address _rewardee) internal {
-        if (_pairs.get(_rewardee) == INCLUDED) {
-            if (_balances.get(_rewardee) < 1) {
-                _rewardees.remove(_rewardee);
-                return;
-            }
-
-            _rewardees.set(_rewardee, 0);
-        }
-    }
-
     function _burn(address account, uint256 amount) internal {
         require(account != address(0), "OPPA: burn from the zero address");
-
         _balances.set(
             account,
             _balances.get(account).sub(
@@ -454,7 +444,7 @@ contract Oppa is Context, IBEP20, Ownable {
         emit Transfer(account, address(0), amount);
     }
 
-    function setTaxationStatus() external returns (bool) {
+    function setTaxationStatus() external onlyOwner returns (bool) {
         taxEnabled = !taxEnabled;
         return taxEnabled;
     }
@@ -465,5 +455,9 @@ contract Oppa is Context, IBEP20, Ownable {
 
     function _maxTxAmount() internal view returns (uint256) {
         return _totalSupply.mul(2).div(100);
+    }
+
+    function addPair(address _newPair) external onlyOwner {
+        _pairs.set(_newPair, INCLUDED);
     }
 }

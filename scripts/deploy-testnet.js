@@ -20,12 +20,6 @@ async function main() {
   const oppa = await Oppa.deploy();
 
   console.log("Oppa ADDRESS: ", oppa.address);
-
-  /**
-   * @dev BURN BEFORE LISTING 50% of total supply  50,000,000,000,000,000.00
-   */
-
-  await oppa.burn(Web3.utils.toWei("50000000000000000"));
 }
 
 // We recommend this pattern to be able to use async/await everywhere
