@@ -54,7 +54,7 @@ contract Oppa is Context, IBEP20, Ownable {
     IPancakeRouter02 _pancakeV2Router;
 
     constructor() public {
-        _name = "Oppa Token";
+        _name = "OPPA Token";
         _symbol = "OPPA";
         _decimals = 18;
         _totalSupply = 100000000000000000 * 10**18; // 100 Quadrillion
