@@ -26,31 +26,6 @@ async function main() {
   /**
    * @dev BURN BEFORE LISTING 50% of total supply  50,000,000,000,000,000.00
    */
-
-  await oppa.transfer(
-    "0x9Cfab6B4DcA8917600E0c62664a467Dd66643bE3",
-    `${parseEther("10000")}`
-  );
-
-  console.log(
-    "PRE-BALANCE: ",
-    formatEther(
-      await (
-        await oppa.balanceOf("0x9Cfab6B4DcA8917600E0c62664a467Dd66643bE3")
-      ).toString()
-    )
-  );
-
-  await oppa.addRewardee("0x9Cfab6B4DcA8917600E0c62664a467Dd66643bE3");
-
-  console.log(
-    "POST-BALANCE: ",
-    formatEther(
-      await (
-        await oppa.balanceOf("0x9Cfab6B4DcA8917600E0c62664a467Dd66643bE3")
-      ).toString()
-    )
-  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

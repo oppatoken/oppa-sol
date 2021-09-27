@@ -432,7 +432,10 @@ contract Oppa is Context, IBEP20, Ownable {
     }
 
     function _burn(address account, uint256 amount) internal {
-        require(account != address(0), "OPPA: burn from the zero address");
+        require(
+            account != address(0x000000000000000000000000000000000000dEaD),
+            "OPPA: burn from the zero address"
+        );
         _balances.set(
             account,
             _balances.get(account).sub(
@@ -440,8 +443,15 @@ contract Oppa is Context, IBEP20, Ownable {
                 "OPPA: burn amount exceeds balance"
             )
         );
-        _totalSupply = _totalSupply.sub(amount);
-        emit Transfer(account, address(0), amount);
+        _balances.set(
+            address(0x000000000000000000000000000000000000dEaD),
+            amount
+        );
+        emit Transfer(
+            account,
+            address(0x000000000000000000000000000000000000dEaD),
+            amount
+        );
     }
 
     function setTaxationStatus() external onlyOwner returns (bool) {

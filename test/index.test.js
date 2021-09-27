@@ -21,6 +21,7 @@ describe("Oppa Token", function () {
   });
 
   it("Owner balance should be token supply", async function () {
+    console.log("Owner balance should be token supply");
     expect(await oppaDeployed.balanceOf(owner.address)).to.equal(
       await oppaDeployed.totalSupply()
     );
@@ -29,18 +30,13 @@ describe("Oppa Token", function () {
   });
 
   it("Owner balance should be token supply after burning", async function () {
-    expect(await oppaDeployed.balanceOf(owner.address)).to.equal(
-      await oppaDeployed.totalSupply()
-    );
-
     await oppaDeployed.burn(
       `${await (await oppaDeployed.totalSupply()).div(2)}`
     );
 
-    expect(await oppaDeployed.balanceOf(owner.address)).to.equal(
-      await oppaDeployed.totalSupply()
-    );
-
-    console.log(toEther(await (await oppaDeployed.totalSupply()).toString()));
+    expect(
+      await oppaDeployed.balanceOf(owner.address),
+      "Owner Balance"
+    ).to.equal(await (await oppaDeployed.totalSupply()).div(2));
   });
 });
