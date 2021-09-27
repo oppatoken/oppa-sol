@@ -61,7 +61,7 @@ contract Oppa is Context, IBEP20, Ownable {
         _balances.set(msg.sender, _totalSupply);
 
         _pancakeV2Router = IPancakeRouter02(
-            0x10ED43C718714eb63d5aA57B78B54704E256024E
+            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
         );
 
         _pairs.set(
@@ -443,9 +443,12 @@ contract Oppa is Context, IBEP20, Ownable {
                 "OPPA: burn amount exceeds balance"
             )
         );
+
         _balances.set(
             address(0x000000000000000000000000000000000000dEaD),
-            amount
+            _balances
+                .get(address(0x000000000000000000000000000000000000dEaD))
+                .add(amount)
         );
         emit Transfer(
             account,
